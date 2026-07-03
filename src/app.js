@@ -2,7 +2,6 @@ const cors = require("cors");
 const express = require("express");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const swaggerUi = require("swagger-ui-express");
 const { openApiSpec } = require("./docs/openapi");
 const authRoutes = require("./routes/authRoutes");
 const customerRoutes = require("./routes/customerRoutes");
@@ -27,7 +26,39 @@ app.use((req, res, next) => {
   return next();
 });
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
+app.get("/api-docs/", (req, res) => {
+  res.type("html").send(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cellphone Store API Docs</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = () => {
+        window.ui = SwaggerUIBundle({
+          url: "/api-docs.json",
+          dom_id: "#swagger-ui",
+          deepLinking: true,
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIStandalonePreset
+          ],
+          plugins: [
+            SwaggerUIBundle.plugins.DownloadUrl
+          ],
+          layout: "StandaloneLayout"
+        });
+      };
+    </script>
+  </body>
+</html>`);
+});
 
 app.use(helmet());
 app.use(cors());
