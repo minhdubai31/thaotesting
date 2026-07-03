@@ -4,7 +4,7 @@
 	"description": "Simple Node.js backend with manual authentication and role-based authorization using Supabase database.",
 	"main": "src/server.js",
 	"scripts": {
-		"build": "prisma generate && next build",
+		"build": "prisma generate",
 		"start": "node src/server.js",
 		"dev": "nodemon src/server.js",
 		"db:push": "prisma db push",
