@@ -72,6 +72,21 @@ async function adjustInventory(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const existingProduct = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true, isActive: true }
+    });
+
+    if (!existingProduct) {
+      addValidationError(errors, "productId", "Product does not exist.");
+    } else if (!existingProduct.isActive) {
+      addValidationError(errors, "productId", "Product is inactive.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       const product = await tx.product.findUnique({
         where: { id: productId },

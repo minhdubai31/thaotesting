@@ -154,6 +154,41 @@ async function createProduct(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const [existingProduct, categoryRecord, supplierRecord] = await Promise.all([
+      prisma.product.findUnique({
+        where: { sku },
+        select: { id: true }
+      }),
+      categoryId
+        ? prisma.category.findUnique({
+            where: { id: categoryId },
+            select: { id: true }
+          })
+        : null,
+      supplierId
+        ? prisma.supplier.findUnique({
+            where: { id: supplierId },
+            select: { id: true }
+          })
+        : null
+    ]);
+
+    if (existingProduct) {
+      addValidationError(errors, "sku", "SKU already exists.");
+    }
+
+    if (categoryId && !categoryRecord) {
+      addValidationError(errors, "categoryId", "Category does not exist.");
+    }
+
+    if (supplierId && !supplierRecord) {
+      addValidationError(errors, "supplierId", "Supplier does not exist.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
+    }
+
     const product = await prisma.product.create({
       data: {
         sku,
@@ -294,6 +329,55 @@ async function updateProduct(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const [existingProduct, duplicateSku, categoryRecord, supplierRecord] =
+      await Promise.all([
+        prisma.product.findUnique({
+          where: { id: req.params.id },
+          select: { id: true }
+        }),
+        data.sku
+          ? prisma.product.findFirst({
+              where: {
+                sku: data.sku,
+                NOT: { id: req.params.id }
+              },
+              select: { id: true }
+            })
+          : null,
+        data.categoryId
+          ? prisma.category.findUnique({
+              where: { id: data.categoryId },
+              select: { id: true }
+            })
+          : null,
+        data.supplierId
+          ? prisma.supplier.findUnique({
+              where: { id: data.supplierId },
+              select: { id: true }
+            })
+          : null
+      ]);
+
+    if (!existingProduct) {
+      addValidationError(errors, "id", "Product does not exist.");
+    }
+
+    if (duplicateSku) {
+      addValidationError(errors, "sku", "SKU already exists.");
+    }
+
+    if (data.categoryId && !categoryRecord) {
+      addValidationError(errors, "categoryId", "Category does not exist.");
+    }
+
+    if (data.supplierId && !supplierRecord) {
+      addValidationError(errors, "supplierId", "Supplier does not exist.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
+    }
+
     const product = await prisma.$transaction(async (tx) => {
       const updatedProduct = await tx.product.update({
         where: { id: req.params.id },
@@ -335,6 +419,17 @@ async function updateProduct(req, res, next) {
 
 async function deleteProduct(req, res, next) {
   try {
+    const existingProduct = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      select: { id: true }
+    });
+
+    if (!existingProduct) {
+      const errors = {};
+      addValidationError(errors, "id", "Product does not exist.");
+      return sendValidationError(res, errors);
+    }
+
     await prisma.product.update({
       where: { id: req.params.id },
       data: { isActive: false }

@@ -93,6 +93,16 @@ async function updateCustomer(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { id: req.params.id },
+      select: { id: true }
+    });
+
+    if (!existingCustomer) {
+      addValidationError(errors, "id", "Customer does not exist.");
+      return sendValidationError(res, errors);
+    }
+
     const customer = await prisma.customer.update({
       where: { id: req.params.id },
       data

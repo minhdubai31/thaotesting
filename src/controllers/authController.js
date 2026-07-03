@@ -64,6 +64,16 @@ async function signup(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true }
+    });
+
+    if (existingUser) {
+      addValidationError(errors, "email", "Email already exists.");
+      return sendValidationError(res, errors);
+    }
+
     const passwordHash = await bcrypt.hash(password, passwordSaltRounds);
 
     const user = await prisma.user.create({
@@ -85,6 +95,10 @@ async function signup(req, res, next) {
       token: createToken(user)
     });
   } catch (error) {
+    if (error.code === "P2002") {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+
     return next(error);
   }
 }

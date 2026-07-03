@@ -47,6 +47,16 @@ async function updateUserRoles(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const existingUser = await prisma.user.findUnique({
+      where: { id: req.params.id },
+      select: { id: true }
+    });
+
+    if (!existingUser) {
+      addValidationError(errors, "id", "User does not exist.");
+      return sendValidationError(res, errors);
+    }
+
     const user = await prisma.user.update({
       where: { id: req.params.id },
       data: { roles },

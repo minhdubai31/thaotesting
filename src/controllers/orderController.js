@@ -224,6 +224,97 @@ async function createOrder(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const productIds = [...new Set(items.map((item) => item.productId))];
+    const [
+      customerRecord,
+      employeeRecord,
+      deliveryCompanyRecord,
+      productRecords
+    ] = await Promise.all([
+      customerId
+        ? prisma.customer.findUnique({
+            where: { id: customerId },
+            select: { id: true }
+          })
+        : null,
+      employeeId
+        ? prisma.employee.findUnique({
+            where: { id: employeeId },
+            select: { id: true }
+          })
+        : null,
+      deliveryCompanyId
+        ? prisma.deliveryCompany.findUnique({
+            where: { id: deliveryCompanyId },
+            select: { id: true }
+          })
+        : null,
+      prisma.product.findMany({
+        where: { id: { in: productIds } },
+        include: { inventory: true }
+      })
+    ]);
+
+    if (customerId && !customerRecord) {
+      addValidationError(errors, "customerId", "Customer does not exist.");
+    }
+
+    if (employeeId && !employeeRecord) {
+      addValidationError(errors, "employeeId", "Employee does not exist.");
+    }
+
+    if (deliveryCompanyId && !deliveryCompanyRecord) {
+      addValidationError(
+        errors,
+        "deliveryCompanyId",
+        "Delivery company does not exist."
+      );
+    }
+
+    const productMap = new Map(
+      productRecords.map((product) => [product.id, product])
+    );
+
+    for (const [index, rawItem] of req.body.items.entries()) {
+      const productId = String(rawItem.productId || "").trim();
+      const product = productMap.get(productId);
+
+      if (!product) {
+        addValidationError(
+          errors,
+          `items[${index}].productId`,
+          "Product does not exist."
+        );
+        continue;
+      }
+
+      if (!product.isActive) {
+        addValidationError(
+          errors,
+          `items[${index}].productId`,
+          "Product is inactive."
+        );
+        continue;
+      }
+
+      const requestedQuantity = items
+        .filter((item) => item.productId === productId)
+        .reduce((sum, item) => sum + item.quantity, 0);
+      const availableQuantity = product.inventory ? product.inventory.quantity : 0;
+
+      if (availableQuantity < requestedQuantity) {
+        addValidationError(
+          errors,
+          `items[${index}].quantity`,
+          `Only ${availableQuantity} units are available.`
+        );
+      }
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
+    }
+
     const order = await prisma.$transaction(async (tx) => {
       if (customerId) {
         const customer = await tx.customer.findUnique({
@@ -395,6 +486,16 @@ async function updateOrderStatus(req, res, next) {
     }
 
     if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
+    }
+
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: req.params.id },
+      select: { id: true }
+    });
+
+    if (!existingOrder) {
+      addValidationError(errors, "id", "Order does not exist.");
       return sendValidationError(res, errors);
     }
 

@@ -89,6 +89,16 @@ async function createCategory(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const existingCategory = await prisma.category.findUnique({
+      where: { name },
+      select: { id: true }
+    });
+
+    if (existingCategory) {
+      addValidationError(errors, "name", "Category name already exists.");
+      return sendValidationError(res, errors);
+    }
+
     const category = await prisma.category.create({
       data: {
         name,
@@ -114,6 +124,34 @@ async function updateCategory(req, res, next) {
 
     if (Object.keys(data).length === 0) {
       addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
+    }
+
+    const [existingCategory, duplicateCategory] = await Promise.all([
+      prisma.category.findUnique({
+        where: { id: req.params.id },
+        select: { id: true }
+      }),
+      data.name
+        ? prisma.category.findFirst({
+            where: {
+              name: data.name,
+              NOT: { id: req.params.id }
+            },
+            select: { id: true }
+          })
+        : null
+    ]);
+
+    if (!existingCategory) {
+      addValidationError(errors, "id", "Category does not exist.");
+    }
+
+    if (duplicateCategory) {
+      addValidationError(errors, "name", "Category name already exists.");
     }
 
     if (hasValidationErrors(errors)) {
@@ -197,6 +235,16 @@ async function updateSupplier(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const existingSupplier = await prisma.supplier.findUnique({
+      where: { id: req.params.id },
+      select: { id: true }
+    });
+
+    if (!existingSupplier) {
+      addValidationError(errors, "id", "Supplier does not exist.");
+      return sendValidationError(res, errors);
+    }
+
     const supplier = await prisma.supplier.update({
       where: { id: req.params.id },
       data
@@ -256,6 +304,16 @@ async function updateDeliveryCompany(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const existingDeliveryCompany = await prisma.deliveryCompany.findUnique({
+      where: { id: req.params.id },
+      select: { id: true }
+    });
+
+    if (!existingDeliveryCompany) {
+      addValidationError(errors, "id", "Delivery company does not exist.");
+      return sendValidationError(res, errors);
+    }
+
     const deliveryCompany = await prisma.deliveryCompany.update({
       where: { id: req.params.id },
       data
@@ -306,6 +364,18 @@ async function createEmployee(req, res, next) {
 
     if (hasValidationErrors(errors)) {
       return sendValidationError(res, errors);
+    }
+
+    if (reportsToId) {
+      const manager = await prisma.employee.findUnique({
+        where: { id: reportsToId },
+        select: { id: true }
+      });
+
+      if (!manager) {
+        addValidationError(errors, "reportsToId", "Reports-to employee does not exist.");
+        return sendValidationError(res, errors);
+      }
     }
 
     const employee = await prisma.employee.create({
@@ -387,6 +457,33 @@ async function updateEmployee(req, res, next) {
 
     if (Object.keys(data).length === 0) {
       addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
+    }
+
+    const [existingEmployee, manager] = await Promise.all([
+      prisma.employee.findUnique({
+        where: { id: req.params.id },
+        select: { id: true }
+      }),
+      data.reportsToId
+        ? prisma.employee.findUnique({
+            where: { id: data.reportsToId },
+            select: { id: true }
+          })
+        : null
+    ]);
+
+    if (!existingEmployee) {
+      addValidationError(errors, "id", "Employee does not exist.");
+    }
+
+    if (data.reportsToId === req.params.id) {
+      addValidationError(errors, "reportsToId", "Employee cannot report to themselves.");
+    } else if (data.reportsToId && !manager) {
+      addValidationError(errors, "reportsToId", "Reports-to employee does not exist.");
     }
 
     if (hasValidationErrors(errors)) {
