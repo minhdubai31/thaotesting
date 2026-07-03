@@ -19,6 +19,14 @@ app.get("/api-docs.json", (req, res) => {
   res.json(openApiSpec);
 });
 
+app.use((req, res, next) => {
+  if (req.originalUrl === "/api-docs") {
+    return res.redirect(301, "/api-docs/");
+  }
+
+  return next();
+});
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 app.use(helmet());
