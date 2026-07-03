@@ -1,4 +1,5 @@
 const { prisma } = require("../config/prisma");
+const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
   hasValidationErrors,
@@ -47,15 +48,27 @@ function pickOptionalStrings(body, fields) {
 
 function handleMasterDataError(error, res, next) {
   if (error.code === "P2025") {
-    return res.status(404).json({ message: "Record not found" });
+    return sendError(res, {
+      statusCode: 404,
+      message: "Record not found",
+      errors: { id: ["Record not found."] }
+    });
   }
 
   if (error.code === "P2002") {
-    return res.status(409).json({ message: "Record already exists" });
+    return sendError(res, {
+      statusCode: 409,
+      message: "Record already exists",
+      errors: { record: ["Record already exists."] }
+    });
   }
 
   if (error.code === "P2003") {
-    return res.status(400).json({ message: "Related record does not exist" });
+    return sendError(res, {
+      statusCode: 400,
+      message: "Related record does not exist",
+      errors: { relation: ["Related record does not exist."] }
+    });
   }
 
   return next(error);
@@ -69,7 +82,10 @@ function createListHandler(modelName, responseKey, include) {
         include
       });
 
-      return res.json({ [responseKey]: records });
+      return sendSuccess(res, {
+        message: `${responseKey} fetched`,
+        data: { [responseKey]: records }
+      });
     } catch (error) {
       return next(error);
     }
@@ -107,7 +123,11 @@ async function createCategory(req, res, next) {
       }
     });
 
-    return res.status(201).json({ category });
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Category created",
+      data: { category }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }
@@ -163,7 +183,10 @@ async function updateCategory(req, res, next) {
       data
     });
 
-    return res.json({ category });
+    return sendSuccess(res, {
+      message: "Category updated",
+      data: { category }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }
@@ -200,7 +223,11 @@ async function createSupplier(req, res, next) {
       }
     });
 
-    return res.status(201).json({ supplier });
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Supplier created",
+      data: { supplier }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }
@@ -250,7 +277,10 @@ async function updateSupplier(req, res, next) {
       data
     });
 
-    return res.json({ supplier });
+    return sendSuccess(res, {
+      message: "Supplier updated",
+      data: { supplier }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }
@@ -277,7 +307,11 @@ async function createDeliveryCompany(req, res, next) {
       }
     });
 
-    return res.status(201).json({ deliveryCompany });
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Delivery company created",
+      data: { deliveryCompany }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }
@@ -319,7 +353,10 @@ async function updateDeliveryCompany(req, res, next) {
       data
     });
 
-    return res.json({ deliveryCompany });
+    return sendSuccess(res, {
+      message: "Delivery company updated",
+      data: { deliveryCompany }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }
@@ -402,7 +439,11 @@ async function createEmployee(req, res, next) {
       }
     });
 
-    return res.status(201).json({ employee });
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Employee created",
+      data: { employee }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }
@@ -495,7 +536,10 @@ async function updateEmployee(req, res, next) {
       data
     });
 
-    return res.json({ employee });
+    return sendSuccess(res, {
+      message: "Employee updated",
+      data: { employee }
+    });
   } catch (error) {
     return handleMasterDataError(error, res, next);
   }

@@ -1,15 +1,24 @@
 const { getPermissionsForRoles } = require("../config/permissions");
+const { sendError } = require("../utils/response");
 
 function authorizePermission(permission) {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
+      return sendError(res, {
+        statusCode: 401,
+        message: "Authentication required",
+        errors: { authorization: ["Authentication is required."] }
+      });
     }
 
     const userPermissions = getPermissionsForRoles(req.roles || []);
 
     if (!userPermissions.includes(permission)) {
-      return res.status(403).json({ message: "Insufficient permissions" });
+      return sendError(res, {
+        statusCode: 403,
+        message: "Insufficient permissions",
+        errors: { permission: ["Insufficient permissions."] }
+      });
     }
 
     return next();

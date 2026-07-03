@@ -1,3 +1,5 @@
+const { sendError } = require("./response");
+
 function addValidationError(errors, field, message) {
   if (!errors[field]) {
     errors[field] = [];
@@ -11,7 +13,8 @@ function hasValidationErrors(errors) {
 }
 
 function sendValidationError(res, errors) {
-  return res.status(400).json({
+  return sendError(res, {
+    statusCode: 400,
     message: "Validation failed",
     errors
   });

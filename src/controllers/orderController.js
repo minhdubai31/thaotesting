@@ -1,4 +1,5 @@
 const { prisma } = require("../config/prisma");
+const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
   hasValidationErrors,
@@ -164,7 +165,10 @@ async function listOrders(req, res, next) {
       include: orderInclude
     });
 
-    return res.json({ orders: orders.map(serializeOrder) });
+    return sendSuccess(res, {
+      message: "Orders fetched",
+      data: { orders: orders.map(serializeOrder) }
+    });
   } catch (error) {
     return next(error);
   }
@@ -460,10 +464,18 @@ async function createOrder(req, res, next) {
       return createdOrder;
     });
 
-    return res.status(201).json({ order: serializeOrder(order) });
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Order created",
+      data: { order: serializeOrder(order) }
+    });
   } catch (error) {
     if (error.status) {
-      return res.status(error.status).json({ message: error.message });
+      return sendError(res, {
+        statusCode: error.status,
+        message: error.message,
+        errors: { order: [error.message] }
+      });
     }
 
     return next(error);
@@ -505,10 +517,17 @@ async function updateOrderStatus(req, res, next) {
       include: orderInclude
     });
 
-    return res.json({ order: serializeOrder(order) });
+    return sendSuccess(res, {
+      message: "Order status updated",
+      data: { order: serializeOrder(order) }
+    });
   } catch (error) {
     if (error.code === "P2025") {
-      return res.status(404).json({ message: "Order not found" });
+      return sendError(res, {
+        statusCode: 404,
+        message: "Order not found",
+        errors: { id: ["Order not found."] }
+      });
     }
 
     return next(error);

@@ -9,6 +9,7 @@ const masterDataRoutes = require("./routes/masterDataRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const productRoutes = require("./routes/productRoutes");
 const userRoutes = require("./routes/userRoutes");
+const { sendError, sendSuccess } = require("./utils/response");
 
 const app = express();
 
@@ -18,7 +19,10 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+  sendSuccess(res, {
+    message: "Health check passed",
+    data: { status: "ok" }
+  });
 });
 
 app.use("/api", authRoutes);
@@ -30,12 +34,20 @@ app.use("/api", orderRoutes);
 app.use("/api", userRoutes);
 
 app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+  sendError(res, {
+    statusCode: 404,
+    message: "Route not found",
+    errors: { route: ["Route not found."] }
+  });
 });
 
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ message: "Internal server error" });
+  sendError(res, {
+    statusCode: 500,
+    message: "Internal server error",
+    errors: { server: ["Internal server error."] }
+  });
 });
 
 module.exports = app;

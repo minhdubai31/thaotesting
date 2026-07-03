@@ -1,4 +1,5 @@
 const { prisma } = require("../config/prisma");
+const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
   hasValidationErrors,
@@ -70,7 +71,10 @@ async function listProducts(req, res, next) {
       include: productInclude
     });
 
-    return res.json({ products });
+    return sendSuccess(res, {
+      message: "Products fetched",
+      data: { products }
+    });
   } catch (error) {
     return next(error);
   }
@@ -212,14 +216,26 @@ async function createProduct(req, res, next) {
       include: productInclude
     });
 
-    return res.status(201).json({ product });
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Product created",
+      data: { product }
+    });
   } catch (error) {
     if (error.code === "P2002") {
-      return res.status(409).json({ message: "SKU already exists" });
+      return sendError(res, {
+        statusCode: 409,
+        message: "SKU already exists",
+        errors: { sku: ["SKU already exists."] }
+      });
     }
 
     if (error.code === "P2003") {
-      return res.status(400).json({ message: "Category or supplier not found" });
+      return sendError(res, {
+        statusCode: 400,
+        message: "Related record not found",
+        errors: { relation: ["Category or supplier not found."] }
+      });
     }
 
     return next(error);
@@ -399,18 +415,33 @@ async function updateProduct(req, res, next) {
       });
     });
 
-    return res.json({ product });
+    return sendSuccess(res, {
+      message: "Product updated",
+      data: { product }
+    });
   } catch (error) {
     if (error.code === "P2025") {
-      return res.status(404).json({ message: "Product not found" });
+      return sendError(res, {
+        statusCode: 404,
+        message: "Product not found",
+        errors: { id: ["Product not found."] }
+      });
     }
 
     if (error.code === "P2002") {
-      return res.status(409).json({ message: "SKU already exists" });
+      return sendError(res, {
+        statusCode: 409,
+        message: "SKU already exists",
+        errors: { sku: ["SKU already exists."] }
+      });
     }
 
     if (error.code === "P2003") {
-      return res.status(400).json({ message: "Category or supplier not found" });
+      return sendError(res, {
+        statusCode: 400,
+        message: "Related record not found",
+        errors: { relation: ["Category or supplier not found."] }
+      });
     }
 
     return next(error);
@@ -435,10 +466,17 @@ async function deleteProduct(req, res, next) {
       data: { isActive: false }
     });
 
-    return res.status(204).send();
+    return sendSuccess(res, {
+      message: "Product deleted",
+      data: null
+    });
   } catch (error) {
     if (error.code === "P2025") {
-      return res.status(404).json({ message: "Product not found" });
+      return sendError(res, {
+        statusCode: 404,
+        message: "Product not found",
+        errors: { id: ["Product not found."] }
+      });
     }
 
     return next(error);

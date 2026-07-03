@@ -1,4 +1,5 @@
 const { prisma } = require("../config/prisma");
+const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
   hasValidationErrors,
@@ -21,7 +22,10 @@ async function listCustomers(req, res, next) {
       orderBy: { createdAt: "desc" }
     });
 
-    return res.json({ customers });
+    return sendSuccess(res, {
+      message: "Customers fetched",
+      data: { customers }
+    });
   } catch (error) {
     return next(error);
   }
@@ -54,7 +58,11 @@ async function createCustomer(req, res, next) {
       }
     });
 
-    return res.status(201).json({ customer });
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Customer created",
+      data: { customer }
+    });
   } catch (error) {
     return next(error);
   }
@@ -108,10 +116,17 @@ async function updateCustomer(req, res, next) {
       data
     });
 
-    return res.json({ customer });
+    return sendSuccess(res, {
+      message: "Customer updated",
+      data: { customer }
+    });
   } catch (error) {
     if (error.code === "P2025") {
-      return res.status(404).json({ message: "Customer not found" });
+      return sendError(res, {
+        statusCode: 404,
+        message: "Customer not found",
+        errors: { id: ["Customer not found."] }
+      });
     }
 
     return next(error);

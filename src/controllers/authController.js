@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { jwtExpiresIn, jwtSecret } = require("../config/env");
 const { prisma } = require("../config/prisma");
+const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
   hasValidationErrors,
@@ -90,13 +91,21 @@ async function signup(req, res, next) {
       }
     });
 
-    return res.status(201).json({
-      user: sanitizeUser(user),
-      token: createToken(user)
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Signup successful",
+      data: {
+        user: sanitizeUser(user),
+        token: createToken(user)
+      }
     });
   } catch (error) {
     if (error.code === "P2002") {
-      return res.status(409).json({ message: "Email already exists" });
+      return sendError(res, {
+        statusCode: 409,
+        message: "Email already exists",
+        errors: { email: ["Email already exists."] }
+      });
     }
 
     return next(error);
@@ -135,22 +144,37 @@ async function login(req, res, next) {
     });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return sendError(res, {
+        statusCode: 401,
+        message: "Invalid email or password",
+        errors: { credentials: ["Invalid email or password."] }
+      });
     }
 
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return sendError(res, {
+        statusCode: 401,
+        message: "Invalid email or password",
+        errors: { credentials: ["Invalid email or password."] }
+      });
     }
 
-    return res.json({
-      user: sanitizeUser(user),
-      token: createToken(user)
+    return sendSuccess(res, {
+      message: "Login successful",
+      data: {
+        user: sanitizeUser(user),
+        token: createToken(user)
+      }
     });
   } catch (error) {
     if (error.code === "P2002") {
-      return res.status(409).json({ message: "Email already exists" });
+      return sendError(res, {
+        statusCode: 409,
+        message: "Email already exists",
+        errors: { email: ["Email already exists."] }
+      });
     }
 
     return next(error);

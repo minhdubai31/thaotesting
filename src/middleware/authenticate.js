@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { jwtSecret } = require("../config/env");
 const { prisma } = require("../config/prisma");
+const { sendError } = require("../utils/response");
 
 function getBearerToken(headerValue) {
   if (!headerValue) {
@@ -20,7 +21,11 @@ async function authenticate(req, res, next) {
     const token = getBearerToken(req.headers.authorization);
 
     if (!token) {
-      return res.status(401).json({ message: "Missing bearer token" });
+      return sendError(res, {
+        statusCode: 401,
+        message: "Authentication failed",
+        errors: { authorization: ["Missing bearer token."] }
+      });
     }
 
     let payload;
@@ -28,7 +33,11 @@ async function authenticate(req, res, next) {
     try {
       payload = jwt.verify(token, jwtSecret);
     } catch (error) {
-      return res.status(401).json({ message: "Invalid or expired token" });
+      return sendError(res, {
+        statusCode: 401,
+        message: "Authentication failed",
+        errors: { authorization: ["Invalid or expired token."] }
+      });
     }
 
     const user = await prisma.user.findUnique({
@@ -42,7 +51,11 @@ async function authenticate(req, res, next) {
     });
 
     if (!user) {
-      return res.status(401).json({ message: "User no longer exists" });
+      return sendError(res, {
+        statusCode: 401,
+        message: "Authentication failed",
+        errors: { user: ["User no longer exists."] }
+      });
     }
 
     req.user = user;

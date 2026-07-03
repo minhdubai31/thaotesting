@@ -1,4 +1,5 @@
 const { prisma } = require("../config/prisma");
+const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
   hasValidationErrors,
@@ -25,7 +26,10 @@ async function listInventory(req, res, next) {
       }
     });
 
-    return res.json({ inventory });
+    return sendSuccess(res, {
+      message: "Inventory fetched",
+      data: { inventory }
+    });
   } catch (error) {
     return next(error);
   }
@@ -144,10 +148,18 @@ async function adjustInventory(req, res, next) {
       return { inventory, movement };
     });
 
-    return res.status(201).json(result);
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Inventory adjusted",
+      data: result
+    });
   } catch (error) {
     if (error.status) {
-      return res.status(error.status).json({ message: error.message });
+      return sendError(res, {
+        statusCode: error.status,
+        message: error.message,
+        errors: { inventory: [error.message] }
+      });
     }
 
     return next(error);

@@ -1,5 +1,6 @@
 const { rolePermissions } = require("../config/permissions");
 const { prisma } = require("../config/prisma");
+const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
   hasValidationErrors,
@@ -69,10 +70,17 @@ async function updateUserRoles(req, res, next) {
       }
     });
 
-    return res.json({ user });
+    return sendSuccess(res, {
+      message: "User roles updated",
+      data: { user }
+    });
   } catch (error) {
     if (error.code === "P2025") {
-      return res.status(404).json({ message: "User not found" });
+      return sendError(res, {
+        statusCode: 404,
+        message: "User not found",
+        errors: { id: ["User not found."] }
+      });
     }
 
     return next(error);
