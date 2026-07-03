@@ -2,6 +2,8 @@ const cors = require("cors");
 const express = require("express");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const swaggerUi = require("swagger-ui-express");
+const { openApiSpec } = require("./docs/openapi");
 const authRoutes = require("./routes/authRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
@@ -12,6 +14,12 @@ const userRoutes = require("./routes/userRoutes");
 const { sendError, sendSuccess } = require("./utils/response");
 
 const app = express();
+
+app.get("/api-docs.json", (req, res) => {
+  res.json(openApiSpec);
+});
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 app.use(helmet());
 app.use(cors());

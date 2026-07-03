@@ -18,6 +18,18 @@ http://localhost:3000
 
 All API routes are under `/api` except the public health check.
 
+Swagger UI is available at:
+
+```text
+http://localhost:3000/api-docs
+```
+
+The raw OpenAPI document is available at:
+
+```text
+http://localhost:3000/api-docs.json
+```
+
 ## Setup
 
 1. Install dependencies:
