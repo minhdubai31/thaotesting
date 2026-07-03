@@ -30,6 +30,18 @@ The raw OpenAPI document is available at:
 http://localhost:3000/api-docs.json
 ```
 
+Production Swagger UI:
+
+```text
+https://thaotesting-git-main-minhdubai.vercel.app/api-docs
+```
+
+Production OpenAPI JSON:
+
+```text
+https://thaotesting-git-main-minhdubai.vercel.app/api-docs.json
+```
+
 ## Setup
 
 1. Install dependencies:
