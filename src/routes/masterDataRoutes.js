@@ -15,6 +15,7 @@ const {
 } = require("../controllers/masterDataController");
 const { authenticate } = require("../middleware/authenticate");
 const { authorizePermission } = require("../middleware/authorizePermission");
+const { validateUuidParam } = require("../middleware/validateUuidParam");
 
 const router = express.Router();
 
@@ -34,6 +35,7 @@ router.patch(
   "/categories/:id",
   authenticate,
   authorizePermission("categories:update"),
+  validateUuidParam("id"),
   updateCategory
 );
 
@@ -53,6 +55,7 @@ router.patch(
   "/suppliers/:id",
   authenticate,
   authorizePermission("suppliers:update"),
+  validateUuidParam("id"),
   updateSupplier
 );
 
@@ -72,6 +75,7 @@ router.patch(
   "/delivery-companies/:id",
   authenticate,
   authorizePermission("delivery_companies:update"),
+  validateUuidParam("id"),
   updateDeliveryCompany
 );
 
@@ -91,6 +95,7 @@ router.patch(
   "/employees/:id",
   authenticate,
   authorizePermission("employees:update"),
+  validateUuidParam("id"),
   updateEmployee
 );
 

@@ -1,4 +1,10 @@
 const { prisma } = require("../config/prisma");
+const {
+  addValidationError,
+  hasValidationErrors,
+  isValidUuid,
+  sendValidationError
+} = require("../utils/validation");
 
 function parseQuantity(value) {
   const quantity = Number(value);
@@ -32,15 +38,38 @@ async function adjustInventory(req, res, next) {
     const quantity = parseQuantity(req.body.quantity);
     const note =
       req.body.note === undefined ? undefined : String(req.body.note || "").trim();
+    const errors = {};
 
-    if (!productId || !["in", "out", "audit"].includes(type) || quantity === null) {
-      return res.status(400).json({
-        message: "productId, type of in/out/audit, and non-negative quantity are required"
-      });
+    if (!productId) {
+      addValidationError(errors, "productId", "Product ID is required.");
+    } else if (!isValidUuid(productId)) {
+      addValidationError(errors, "productId", "Product ID must be a valid UUID.");
+    }
+
+    if (!type) {
+      addValidationError(errors, "type", "Type is required.");
+    } else if (!["in", "out", "audit"].includes(type)) {
+      addValidationError(errors, "type", "Type must be one of: in, out, audit.");
+    }
+
+    if (quantity === null) {
+      addValidationError(
+        errors,
+        "quantity",
+        "Quantity must be a non-negative integer."
+      );
     }
 
     if ((type === "in" || type === "out") && quantity === 0) {
-      return res.status(400).json({ message: "Quantity must be greater than zero" });
+      addValidationError(
+        errors,
+        "quantity",
+        "Quantity must be greater than zero for in and out adjustments."
+      );
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const result = await prisma.$transaction(async (tx) => {

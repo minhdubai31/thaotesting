@@ -1,4 +1,10 @@
 const { prisma } = require("../config/prisma");
+const {
+  addValidationError,
+  hasValidationErrors,
+  isValidUuid,
+  sendValidationError
+} = require("../utils/validation");
 
 function parsePrice(value) {
   const price = Number(value);
@@ -29,6 +35,26 @@ function readOptionalId(value) {
   }
 
   return String(value || "").trim() || null;
+}
+
+function parseOptionalBoolean(value, fallback) {
+  if (value === undefined) {
+    return fallback;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  return null;
 }
 
 const productInclude = {
@@ -64,21 +90,68 @@ async function createProduct(req, res, next) {
     );
     const unitsOnOrder = parseNonNegativeInteger(req.body.unitsOnOrder, 0);
     const reorderLevel = parseNonNegativeInteger(req.body.reorderLevel, 0);
+    const categoryId = readOptionalId(req.body.categoryId);
+    const supplierId = readOptionalId(req.body.supplierId);
+    const discontinued = parseOptionalBoolean(req.body.discontinued, false);
+    const isActive = parseOptionalBoolean(req.body.isActive, true);
+    const errors = {};
 
-    if (
-      !sku ||
-      !name ||
-      !brand ||
-      !model ||
-      price === null ||
-      quantity === null ||
-      unitsOnOrder === null ||
-      reorderLevel === null
-    ) {
-      return res.status(400).json({
-        message:
-          "SKU, name, brand, model, non-negative price, stock, on-order quantity, and reorder level are required"
-      });
+    for (const [field, value] of Object.entries({ sku, name, brand, model })) {
+      if (!value) {
+        addValidationError(errors, field, `${field} is required.`);
+      }
+    }
+
+    if (!category) {
+      addValidationError(errors, "category", "Category cannot be empty.");
+    }
+
+    if (price === null) {
+      addValidationError(errors, "price", "Price must be a non-negative number.");
+    }
+
+    if (quantity === null) {
+      addValidationError(
+        errors,
+        "unitsInStock",
+        "Stock quantity must be a non-negative integer."
+      );
+    }
+
+    if (unitsOnOrder === null) {
+      addValidationError(
+        errors,
+        "unitsOnOrder",
+        "Units on order must be a non-negative integer."
+      );
+    }
+
+    if (reorderLevel === null) {
+      addValidationError(
+        errors,
+        "reorderLevel",
+        "Reorder level must be a non-negative integer."
+      );
+    }
+
+    if (categoryId && !isValidUuid(categoryId)) {
+      addValidationError(errors, "categoryId", "Category ID must be a valid UUID.");
+    }
+
+    if (supplierId && !isValidUuid(supplierId)) {
+      addValidationError(errors, "supplierId", "Supplier ID must be a valid UUID.");
+    }
+
+    if (discontinued === null) {
+      addValidationError(errors, "discontinued", "Discontinued must be a boolean.");
+    }
+
+    if (isActive === null) {
+      addValidationError(errors, "isActive", "isActive must be a boolean.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const product = await prisma.product.create({
@@ -88,15 +161,15 @@ async function createProduct(req, res, next) {
         brand,
         model,
         category,
-        categoryId: readOptionalId(req.body.categoryId),
-        supplierId: readOptionalId(req.body.supplierId),
+        categoryId,
+        supplierId,
         quantityPerUnit: readOptionalString(req.body.quantityPerUnit),
         price,
         unitsInStock: quantity,
         unitsOnOrder,
         reorderLevel,
-        discontinued: Boolean(req.body.discontinued),
-        isActive: req.body.isActive === undefined ? true : Boolean(req.body.isActive),
+        discontinued,
+        isActive,
         inventory: {
           create: { quantity }
         }
@@ -122,16 +195,17 @@ async function updateProduct(req, res, next) {
   try {
     const data = {};
     const stringFields = ["sku", "name", "brand", "model", "category"];
+    const errors = {};
 
     for (const field of stringFields) {
       if (req.body[field] !== undefined) {
         const value = String(req.body[field] || "").trim();
 
         if (!value) {
-          return res.status(400).json({ message: `${field} cannot be empty` });
+          addValidationError(errors, field, `${field} cannot be empty.`);
+        } else {
+          data[field] = value;
         }
-
-        data[field] = value;
       }
     }
 
@@ -139,20 +213,24 @@ async function updateProduct(req, res, next) {
       const price = parsePrice(req.body.price);
 
       if (price === null) {
-        return res.status(400).json({ message: "Price must be non-negative" });
+        addValidationError(errors, "price", "Price must be a non-negative number.");
+      } else {
+        data.price = price;
       }
-
-      data.price = price;
     }
 
     if (req.body.unitPrice !== undefined) {
       const price = parsePrice(req.body.unitPrice);
 
       if (price === null) {
-        return res.status(400).json({ message: "Unit price must be non-negative" });
+        addValidationError(
+          errors,
+          "unitPrice",
+          "Unit price must be a non-negative number."
+        );
+      } else {
+        data.price = price;
       }
-
-      data.price = price;
     }
 
     for (const field of ["unitsInStock", "unitsOnOrder", "reorderLevel"]) {
@@ -160,10 +238,14 @@ async function updateProduct(req, res, next) {
         const value = parseNonNegativeInteger(req.body[field]);
 
         if (value === null) {
-          return res.status(400).json({ message: `${field} must be non-negative` });
+          addValidationError(
+            errors,
+            field,
+            `${field} must be a non-negative integer.`
+          );
+        } else {
+          data[field] = value;
         }
-
-        data[field] = value;
       }
     }
 
@@ -176,16 +258,40 @@ async function updateProduct(req, res, next) {
       }
     }
 
+    if (data.categoryId && !isValidUuid(data.categoryId)) {
+      addValidationError(errors, "categoryId", "Category ID must be a valid UUID.");
+    }
+
+    if (data.supplierId && !isValidUuid(data.supplierId)) {
+      addValidationError(errors, "supplierId", "Supplier ID must be a valid UUID.");
+    }
+
     if (req.body.discontinued !== undefined) {
-      data.discontinued = Boolean(req.body.discontinued);
+      const discontinued = parseOptionalBoolean(req.body.discontinued);
+
+      if (discontinued === null) {
+        addValidationError(errors, "discontinued", "Discontinued must be a boolean.");
+      } else {
+        data.discontinued = discontinued;
+      }
     }
 
     if (req.body.isActive !== undefined) {
-      data.isActive = Boolean(req.body.isActive);
+      const isActive = parseOptionalBoolean(req.body.isActive);
+
+      if (isActive === null) {
+        addValidationError(errors, "isActive", "isActive must be a boolean.");
+      } else {
+        data.isActive = isActive;
+      }
     }
 
     if (Object.keys(data).length === 0) {
-      return res.status(400).json({ message: "At least one field is required" });
+      addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const product = await prisma.$transaction(async (tx) => {

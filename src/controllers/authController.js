@@ -2,6 +2,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { jwtExpiresIn, jwtSecret } = require("../config/env");
 const { prisma } = require("../config/prisma");
+const {
+  addValidationError,
+  hasValidationErrors,
+  isValidEmail,
+  sendValidationError
+} = require("../utils/validation");
 
 const passwordSaltRounds = 12;
 
@@ -36,11 +42,26 @@ async function signup(req, res, next) {
   try {
     const email = normalizeEmail(req.body.email);
     const password = String(req.body.password || "");
+    const errors = {};
 
-    if (!email || password.length < 8) {
-      return res.status(400).json({
-        message: "Email is required and password must be at least 8 characters"
-      });
+    if (!email) {
+      addValidationError(errors, "email", "Email is required.");
+    } else if (!isValidEmail(email)) {
+      addValidationError(errors, "email", "Email must be a valid email address.");
+    }
+
+    if (!password) {
+      addValidationError(errors, "password", "Password is required.");
+    } else if (password.length < 8) {
+      addValidationError(
+        errors,
+        "password",
+        "Password must be at least 8 characters."
+      );
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const passwordHash = await bcrypt.hash(password, passwordSaltRounds);
@@ -72,9 +93,20 @@ async function login(req, res, next) {
   try {
     const email = normalizeEmail(req.body.email);
     const password = String(req.body.password || "");
+    const errors = {};
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if (!email) {
+      addValidationError(errors, "email", "Email is required.");
+    } else if (!isValidEmail(email)) {
+      addValidationError(errors, "email", "Email must be a valid email address.");
+    }
+
+    if (!password) {
+      addValidationError(errors, "password", "Password is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const user = await prisma.user.findUnique({

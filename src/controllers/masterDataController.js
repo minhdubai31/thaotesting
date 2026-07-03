@@ -1,4 +1,10 @@
 const { prisma } = require("../config/prisma");
+const {
+  addValidationError,
+  hasValidationErrors,
+  isValidUuid,
+  sendValidationError
+} = require("../utils/validation");
 
 function readOptionalString(value) {
   if (value === undefined) {
@@ -73,9 +79,14 @@ function createListHandler(modelName, responseKey, include) {
 async function createCategory(req, res, next) {
   try {
     const name = readRequiredString(req.body.name);
+    const errors = {};
 
     if (!name) {
-      return res.status(400).json({ message: "Name is required" });
+      addValidationError(errors, "name", "Name is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const category = await prisma.category.create({
@@ -95,13 +106,18 @@ async function createCategory(req, res, next) {
 async function updateCategory(req, res, next) {
   try {
     const data = pickOptionalStrings(req.body, ["name", "description", "picture"]);
+    const errors = {};
 
     if (data.name === null) {
-      return res.status(400).json({ message: "Name cannot be empty" });
+      addValidationError(errors, "name", "Name cannot be empty.");
     }
 
     if (Object.keys(data).length === 0) {
-      return res.status(400).json({ message: "At least one field is required" });
+      addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const category = await prisma.category.update({
@@ -118,9 +134,14 @@ async function updateCategory(req, res, next) {
 async function createSupplier(req, res, next) {
   try {
     const companyName = readRequiredString(req.body.companyName);
+    const errors = {};
 
     if (!companyName) {
-      return res.status(400).json({ message: "companyName is required" });
+      addValidationError(errors, "companyName", "Company name is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const supplier = await prisma.supplier.create({
@@ -162,13 +183,18 @@ async function updateSupplier(req, res, next) {
       "fax",
       "homepage"
     ]);
+    const errors = {};
 
     if (data.companyName === null) {
-      return res.status(400).json({ message: "companyName cannot be empty" });
+      addValidationError(errors, "companyName", "Company name cannot be empty.");
     }
 
     if (Object.keys(data).length === 0) {
-      return res.status(400).json({ message: "At least one field is required" });
+      addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const supplier = await prisma.supplier.update({
@@ -185,9 +211,14 @@ async function updateSupplier(req, res, next) {
 async function createDeliveryCompany(req, res, next) {
   try {
     const companyName = readRequiredString(req.body.companyName);
+    const errors = {};
 
     if (!companyName) {
-      return res.status(400).json({ message: "companyName is required" });
+      addValidationError(errors, "companyName", "Company name is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const deliveryCompany = await prisma.deliveryCompany.create({
@@ -211,13 +242,18 @@ async function updateDeliveryCompany(req, res, next) {
       "phone",
       "trackingUrl"
     ]);
+    const errors = {};
 
     if (data.companyName === null) {
-      return res.status(400).json({ message: "companyName cannot be empty" });
+      addValidationError(errors, "companyName", "Company name cannot be empty.");
     }
 
     if (Object.keys(data).length === 0) {
-      return res.status(400).json({ message: "At least one field is required" });
+      addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const deliveryCompany = await prisma.deliveryCompany.update({
@@ -237,11 +273,39 @@ async function createEmployee(req, res, next) {
     const lastName = readRequiredString(req.body.lastName);
     const birthDate = readOptionalDate(req.body.birthDate);
     const hireDate = readOptionalDate(req.body.hireDate);
+    const reportsToId = readOptionalString(req.body.reportsToId);
+    const errors = {};
 
-    if (!firstName || !lastName || birthDate === null || hireDate === null) {
-      return res.status(400).json({
-        message: "firstName, lastName, and valid optional dates are required"
-      });
+    if (!firstName) {
+      addValidationError(errors, "firstName", "First name is required.");
+    }
+
+    if (!lastName) {
+      addValidationError(errors, "lastName", "Last name is required.");
+    }
+
+    if (birthDate === null) {
+      addValidationError(
+        errors,
+        "birthDate",
+        "Birth date must be a valid date when provided."
+      );
+    }
+
+    if (hireDate === null) {
+      addValidationError(
+        errors,
+        "hireDate",
+        "Hire date must be a valid date when provided."
+      );
+    }
+
+    if (reportsToId && !isValidUuid(reportsToId)) {
+      addValidationError(errors, "reportsToId", "Reports-to ID must be a valid UUID.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const employee = await prisma.employee.create({
@@ -250,7 +314,7 @@ async function createEmployee(req, res, next) {
         lastName,
         birthDate,
         hireDate,
-        reportsToId: readOptionalString(req.body.reportsToId),
+        reportsToId,
         ...pickOptionalStrings(req.body, [
           "title",
           "titleOfCourtesy",
@@ -293,10 +357,11 @@ async function updateEmployee(req, res, next) {
       "reportsToId",
       "photoPath"
     ]);
+    const errors = {};
 
     for (const field of ["firstName", "lastName"]) {
       if (data[field] === null) {
-        return res.status(400).json({ message: `${field} cannot be empty` });
+        addValidationError(errors, field, `${field} cannot be empty.`);
       }
     }
 
@@ -305,15 +370,27 @@ async function updateEmployee(req, res, next) {
         const value = readOptionalDate(req.body[field]);
 
         if (value === null) {
-          return res.status(400).json({ message: `${field} must be a valid date` });
+          addValidationError(
+            errors,
+            field,
+            `${field} must be a valid date when provided.`
+          );
+        } else {
+          data[field] = value;
         }
-
-        data[field] = value;
       }
     }
 
+    if (data.reportsToId && !isValidUuid(data.reportsToId)) {
+      addValidationError(errors, "reportsToId", "Reports-to ID must be a valid UUID.");
+    }
+
     if (Object.keys(data).length === 0) {
-      return res.status(400).json({ message: "At least one field is required" });
+      addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const employee = await prisma.employee.update({

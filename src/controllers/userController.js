@@ -1,5 +1,10 @@
 const { rolePermissions } = require("../config/permissions");
 const { prisma } = require("../config/prisma");
+const {
+  addValidationError,
+  hasValidationErrors,
+  sendValidationError
+} = require("../utils/validation");
 
 const allowedRoles = Object.keys(rolePermissions);
 
@@ -24,11 +29,22 @@ function normalizeRoles(roles) {
 async function updateUserRoles(req, res, next) {
   try {
     const roles = normalizeRoles(req.body.roles);
+    const errors = {};
 
-    if (!roles) {
-      return res.status(400).json({
-        message: `Roles must be a non-empty array using: ${allowedRoles.join(", ")}`
-      });
+    if (!Array.isArray(req.body.roles)) {
+      addValidationError(errors, "roles", "Roles must be an array.");
+    } else if (req.body.roles.length === 0) {
+      addValidationError(errors, "roles", "Roles must include at least one role.");
+    } else if (!roles) {
+      addValidationError(
+        errors,
+        "roles",
+        `Roles must only use: ${allowedRoles.join(", ")}.`
+      );
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const user = await prisma.user.update({

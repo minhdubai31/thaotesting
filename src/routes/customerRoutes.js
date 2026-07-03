@@ -6,6 +6,7 @@ const {
 } = require("../controllers/customerController");
 const { authenticate } = require("../middleware/authenticate");
 const { authorizePermission } = require("../middleware/authorizePermission");
+const { validateUuidParam } = require("../middleware/validateUuidParam");
 
 const router = express.Router();
 
@@ -25,6 +26,7 @@ router.patch(
   "/customers/:id",
   authenticate,
   authorizePermission("customers:update"),
+  validateUuidParam("id"),
   updateCustomer
 );
 

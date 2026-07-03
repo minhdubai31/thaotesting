@@ -1,4 +1,10 @@
 const { prisma } = require("../config/prisma");
+const {
+  addValidationError,
+  hasValidationErrors,
+  isValidUuid,
+  sendValidationError
+} = require("../utils/validation");
 
 const allowedStatuses = ["pending", "completed", "cancelled"];
 
@@ -44,18 +50,56 @@ function readOptionalString(value) {
   return normalized || null;
 }
 
-function parseOrderItems(items) {
+function parseOrderItems(items, errors) {
   if (!Array.isArray(items) || items.length === 0) {
+    addValidationError(errors, "items", "Items must be a non-empty array.");
     return null;
   }
 
   const itemMap = new Map();
 
-  for (const item of items) {
+  for (const [index, rawItem] of items.entries()) {
+    const item = rawItem && typeof rawItem === "object" ? rawItem : {};
     const productId = String(item.productId || "").trim();
     const quantity = Number(item.quantity);
-    const unitPrice = item.unitPrice === undefined ? undefined : parseNonNegativeMoney(item.unitPrice);
+    const unitPrice =
+      item.unitPrice === undefined ? undefined : parseNonNegativeMoney(item.unitPrice);
     const discount = parseDiscount(item.discount);
+    const prefix = `items[${index}]`;
+
+    if (!productId) {
+      addValidationError(errors, `${prefix}.productId`, "Product ID is required.");
+    } else if (!isValidUuid(productId)) {
+      addValidationError(
+        errors,
+        `${prefix}.productId`,
+        "Product ID must be a valid UUID."
+      );
+    }
+
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      addValidationError(
+        errors,
+        `${prefix}.quantity`,
+        "Quantity must be an integer greater than zero."
+      );
+    }
+
+    if (unitPrice === null) {
+      addValidationError(
+        errors,
+        `${prefix}.unitPrice`,
+        "Unit price must be a non-negative number when provided."
+      );
+    }
+
+    if (discount === null) {
+      addValidationError(
+        errors,
+        `${prefix}.discount`,
+        "Discount must be a number between 0 and 1."
+      );
+    }
 
     if (
       !productId ||
@@ -64,7 +108,7 @@ function parseOrderItems(items) {
       unitPrice === null ||
       discount === null
     ) {
-      return null;
+      continue;
     }
 
     const key = `${productId}:${unitPrice ?? "product"}:${discount}`;
@@ -77,7 +121,7 @@ function parseOrderItems(items) {
     });
   }
 
-  return [...itemMap.values()];
+  return itemMap.size > 0 ? [...itemMap.values()] : null;
 }
 
 function serializeOrder(order) {
@@ -143,13 +187,41 @@ async function createOrder(req, res, next) {
     const requiredDate = parseOptionalDate(req.body.requiredDate);
     const shippedDate = parseOptionalDate(req.body.shippedDate);
     const freight = parseNonNegativeMoney(req.body.freight, 0);
-    const items = parseOrderItems(req.body.items);
+    const errors = {};
+    const items = parseOrderItems(req.body.items, errors);
 
-    if (!items || requiredDate === null || shippedDate === null || freight === null) {
-      return res.status(400).json({
-        message:
-          "Items, valid dates, non-negative freight, productId, quantity, unitPrice, and discount are required"
-      });
+    for (const [field, value] of Object.entries({
+      customerId,
+      employeeId,
+      deliveryCompanyId
+    })) {
+      if (value && !isValidUuid(value)) {
+        addValidationError(errors, field, `${field} must be a valid UUID.`);
+      }
+    }
+
+    if (requiredDate === null) {
+      addValidationError(
+        errors,
+        "requiredDate",
+        "Required date must be a valid date when provided."
+      );
+    }
+
+    if (shippedDate === null) {
+      addValidationError(
+        errors,
+        "shippedDate",
+        "Shipped date must be a valid date when provided."
+      );
+    }
+
+    if (freight === null) {
+      addValidationError(errors, "freight", "Freight must be a non-negative number.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const order = await prisma.$transaction(async (tx) => {
@@ -310,11 +382,20 @@ async function createOrder(req, res, next) {
 async function updateOrderStatus(req, res, next) {
   try {
     const status = String(req.body.status || "").trim().toLowerCase();
+    const errors = {};
 
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({
-        message: `Status must be one of: ${allowedStatuses.join(", ")}`
-      });
+    if (!status) {
+      addValidationError(errors, "status", "Status is required.");
+    } else if (!allowedStatuses.includes(status)) {
+      addValidationError(
+        errors,
+        "status",
+        `Status must be one of: ${allowedStatuses.join(", ")}.`
+      );
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const order = await prisma.order.update({

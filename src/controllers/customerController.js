@@ -1,4 +1,10 @@
 const { prisma } = require("../config/prisma");
+const {
+  addValidationError,
+  hasValidationErrors,
+  isValidEmail,
+  sendValidationError
+} = require("../utils/validation");
 
 function readOptionalString(value) {
   if (value === undefined) {
@@ -24,16 +30,26 @@ async function listCustomers(req, res, next) {
 async function createCustomer(req, res, next) {
   try {
     const name = String(req.body.name || "").trim();
+    const email = readOptionalString(req.body.email);
+    const errors = {};
 
     if (!name) {
-      return res.status(400).json({ message: "Name is required" });
+      addValidationError(errors, "name", "Name is required.");
+    }
+
+    if (email && !isValidEmail(email)) {
+      addValidationError(errors, "email", "Email must be a valid email address.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const customer = await prisma.customer.create({
       data: {
         name,
         phone: readOptionalString(req.body.phone),
-        email: readOptionalString(req.body.email),
+        email,
         address: readOptionalString(req.body.address)
       }
     });
@@ -47,15 +63,16 @@ async function createCustomer(req, res, next) {
 async function updateCustomer(req, res, next) {
   try {
     const data = {};
+    const errors = {};
 
     if (req.body.name !== undefined) {
       const name = String(req.body.name || "").trim();
 
       if (!name) {
-        return res.status(400).json({ message: "Name cannot be empty" });
+        addValidationError(errors, "name", "Name cannot be empty.");
+      } else {
+        data.name = name;
       }
-
-      data.name = name;
     }
 
     for (const field of ["phone", "email", "address"]) {
@@ -64,8 +81,16 @@ async function updateCustomer(req, res, next) {
       }
     }
 
+    if (data.email && !isValidEmail(data.email)) {
+      addValidationError(errors, "email", "Email must be a valid email address.");
+    }
+
     if (Object.keys(data).length === 0) {
-      return res.status(400).json({ message: "At least one field is required" });
+      addValidationError(errors, "body", "At least one field is required.");
+    }
+
+    if (hasValidationErrors(errors)) {
+      return sendValidationError(res, errors);
     }
 
     const customer = await prisma.customer.update({
