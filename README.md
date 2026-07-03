@@ -58,6 +58,37 @@ npm start            # Start with node
 npm run build        # Generate Prisma client
 npm run db:push      # Push Prisma schema to the database
 npm run db:generate  # Generate Prisma client
+npm run db:seed      # Insert Vietnamese sample data
+```
+
+## Seed Data
+
+Run this after `npm run db:push` to insert Vietnamese sample data:
+
+```bash
+npm run db:seed
+```
+
+The seed is idempotent and uses fixed IDs/upserts, so running it again updates the same sample rows instead of creating duplicates.
+
+Seeded data includes:
+
+- 20 users
+- 20 categories
+- 20 suppliers
+- 20 delivery companies
+- 20 employees
+- 50 customers
+- 50 products
+- 50 inventory items
+- 50 orders
+- 50 order items
+- 50 stock movements
+
+Seeded users use this default password:
+
+```text
+secret123
 ```
 
 ## Database
