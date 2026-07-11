@@ -60,6 +60,10 @@ JWT_SECRET=replace-this-with-a-long-random-secret
 JWT_EXPIRES_IN=1d
 ```
 
+Each successful login invalidates all tokens previously issued for that user.
+After pulling this change, apply the new `users.token_version` column with
+`npm run db:push` before starting the API.
+
 Find the database URL in Supabase Dashboard -> Project Settings -> Database -> Connection string -> Session pooler.
 
 3. Create or update the database tables:

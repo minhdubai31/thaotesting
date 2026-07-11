@@ -46,6 +46,7 @@ async function authenticate(req, res, next) {
         id: true,
         email: true,
         roles: true,
+        tokenVersion: true,
         createdAt: true
       }
     });
@@ -55,6 +56,17 @@ async function authenticate(req, res, next) {
         statusCode: 401,
         message: "Authentication failed",
         errors: { user: ["User no longer exists."] }
+      });
+    }
+
+    if (
+      !Number.isInteger(payload.tokenVersion) ||
+      payload.tokenVersion !== user.tokenVersion
+    ) {
+      return sendError(res, {
+        statusCode: 401,
+        message: "Authentication failed",
+        errors: { authorization: ["Token has been invalidated by a newer login."] }
       });
     }
 

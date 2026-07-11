@@ -29,7 +29,8 @@ function createToken(user) {
   return jwt.sign(
     {
       email: user.email,
-      roles: user.roles || []
+      roles: user.roles || [],
+      tokenVersion: user.tokenVersion
     },
     jwtSecret,
     {
@@ -87,6 +88,7 @@ async function signup(req, res, next) {
         id: true,
         email: true,
         roles: true,
+        tokenVersion: true,
         createdAt: true
       }
     });
@@ -161,11 +163,25 @@ async function login(req, res, next) {
       });
     }
 
+    // Incrementing the version invalidates every token issued for this user
+    // before this successful login.
+    const loggedInUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { tokenVersion: { increment: 1 } },
+      select: {
+        id: true,
+        email: true,
+        roles: true,
+        tokenVersion: true,
+        createdAt: true
+      }
+    });
+
     return sendSuccess(res, {
       message: "Login successful",
       data: {
-        user: sanitizeUser(user),
-        token: createToken(user)
+        user: sanitizeUser(loggedInUser),
+        token: createToken(loggedInUser)
       }
     });
   } catch (error) {
