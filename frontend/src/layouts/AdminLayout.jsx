@@ -11,6 +11,7 @@ import {
   TagsOutlined,
   TeamOutlined,
   UserOutlined,
+  UserSwitchOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../auth/AuthContext";
 
@@ -23,6 +24,7 @@ const navItems = [
   { key: "/admin/customers", icon: <TeamOutlined />, label: <Link to="/admin/customers">Customers</Link> },
   { key: "/admin/inventory", icon: <DatabaseOutlined />, label: <Link to="/admin/inventory">Inventory</Link> },
   { key: "/admin/coupons", icon: <TagsOutlined />, label: <Link to="/admin/coupons">Coupons</Link> },
+  { key: "/admin/users", icon: <UserSwitchOutlined />, label: <Link to="/admin/users">Users</Link>, adminOnly: true },
 ];
 
 function activeKey(pathname) {
@@ -35,6 +37,7 @@ function activeKey(pathname) {
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
+  const isAdmin = Boolean(user?.roles?.includes("admin"));
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -59,7 +62,12 @@ export default function AdminLayout() {
           <span className="logo">T</span>
           {!collapsed && <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Thao Store</span>}
         </div>
-        <Menu theme="dark" mode="inline" selectedKeys={[activeKey(location.pathname)]} items={navItems} />
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[activeKey(location.pathname)]}
+          items={navItems.filter((item) => isAdmin || !item.adminOnly)}
+        />
       </Sider>
       <Layout>
         <Header className="admin-header">

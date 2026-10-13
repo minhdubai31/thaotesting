@@ -1,5 +1,6 @@
 const { rolePermissions } = require("../config/permissions");
 const { prisma } = require("../config/prisma");
+const { buildMeta, parsePagination, parseSort, readSearch } = require("../utils/pagination");
 const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
@@ -8,6 +9,44 @@ const {
 } = require("../utils/validation");
 
 const allowedRoles = Object.keys(rolePermissions);
+
+async function listUsers(req, res, next) {
+  try {
+    const { page, pageSize, skip, take } = parsePagination(req.query);
+    const q = readSearch(req.query.q);
+    const where = q
+      ? {
+          OR: ["email", "username"].map((field) => ({
+            [field]: { contains: q, mode: "insensitive" }
+          }))
+        }
+      : {};
+
+    const [users, total] = await prisma.$transaction([
+      prisma.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy: parseSort(req.query, ["email", "createdAt"], "createdAt"),
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          roles: true,
+          createdAt: true
+        }
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    return sendSuccess(res, {
+      message: "Users fetched",
+      data: { users, meta: buildMeta({ page, pageSize, total }) }
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
 
 function normalizeRoles(roles) {
   if (!Array.isArray(roles) || roles.length === 0) {
@@ -88,5 +127,6 @@ async function updateUserRoles(req, res, next) {
 }
 
 module.exports = {
+  listUsers,
   updateUserRoles
 };

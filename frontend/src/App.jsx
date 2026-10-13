@@ -24,6 +24,7 @@ import CustomerFormPage from "./pages/admin/CustomerFormPage";
 import InventoryPage from "./pages/admin/InventoryPage";
 import AdjustStockPage from "./pages/admin/AdjustStockPage";
 import CouponsPage from "./pages/admin/CouponsPage";
+import UsersPage from "./pages/admin/UsersPage";
 
 export default function App() {
   return (
@@ -61,6 +62,7 @@ export default function App() {
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="inventory/adjust" element={<AdjustStockPage />} />
           <Route path="coupons" element={<CouponsPage />} />
+          <Route path="users" element={<UsersPage />} />
         </Route>
       </Route>
 
