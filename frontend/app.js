@@ -201,7 +201,7 @@ function renderAuth() {
                 </label>`
           }
           <label>Password
-            <input type="password" name="password" required minlength="8"
+            <input type="password" name="password" required ${isLogin ? "" : 'minlength="8"'}
               autocomplete="${isLogin ? "current-password" : "new-password"}" />
           </label>
           <button class="primary" type="submit">${isLogin ? "Sign in" : "Sign up"}</button>
