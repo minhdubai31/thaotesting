@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, getToken, setToken } from "../lib/api";
+import { STAFF_ROLES } from "../lib/format";
 
 const AuthContext = createContext(null);
 
@@ -14,7 +15,6 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  // Load the current user when the page opens with a saved token.
   useEffect(() => {
     if (!token) {
       setLoading(false);
@@ -34,7 +34,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(
-    async (identifier, password) => startSession(await api("/api/login", { method: "POST", body: { identifier, password } })),
+    async (identifier, password) =>
+      startSession(await api("/api/login", { method: "POST", body: { identifier, password } })),
     [startSession]
   );
 
@@ -43,9 +44,12 @@ export function AuthProvider({ children }) {
     [startSession]
   );
 
+  const isAuthenticated = Boolean(token && user);
+  const isStaff = Boolean(user?.roles?.some((role) => STAFF_ROLES.includes(role)));
+
   const value = useMemo(
-    () => ({ token, user, loading, login, signup, logout: clearSession, isAuthenticated: Boolean(token && user) }),
-    [token, user, loading, login, signup, clearSession]
+    () => ({ token, user, loading, login, signup, logout: clearSession, isAuthenticated, isStaff }),
+    [token, user, loading, login, signup, clearSession, isAuthenticated, isStaff]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

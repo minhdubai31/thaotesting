@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./api";
 
-// Reference lists used by forms and filters. Cached and shared across pages.
-export function useMasters() {
+// Reference lists for admin forms and filters.
+export function useMasters(enabled = true) {
   return useQuery({
     queryKey: ["masters"],
+    enabled,
     queryFn: async () => {
       const [categories, suppliers, deliveries, products, customers] = await Promise.all([
         api("/api/categories"),

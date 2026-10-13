@@ -4,7 +4,10 @@
   "outputDirectory": "public",
   "functions": {
     "api/index.js": {
-      "includeFiles": "src/**"
+      "includeFiles": "src/**",
+      "regions": [
+        "syd1"
+      ]
     }
   },
   "rewrites": [
