@@ -1,4 +1,5 @@
 const { prisma } = require("../config/prisma");
+const { slugify } = require("../utils/ecommerce");
 const { sendError, sendSuccess } = require("../utils/response");
 const {
   addValidationError,
@@ -118,6 +119,7 @@ async function createCategory(req, res, next) {
     const category = await prisma.category.create({
       data: {
         name,
+        slug: slugify(name),
         description: readOptionalString(req.body.description),
         picture: readOptionalString(req.body.picture)
       }

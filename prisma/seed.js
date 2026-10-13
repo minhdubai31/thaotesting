@@ -11,6 +11,7 @@ if (!process.env.DATABASE_URL) {
 
 const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("@prisma/client");
+const { slugify } = require("../src/utils/ecommerce");
 
 const prisma = new PrismaClient();
 
@@ -175,7 +176,7 @@ async function getCreator() {
 async function seedCategories() {
   const created = {};
   for (const category of categories) {
-    created[category.name] = await prisma.category.create({ data: category });
+    created[category.name] = await prisma.category.create({ data: { ...category, slug: slugify(category.name) } });
   }
   return created;
 }
@@ -245,6 +246,7 @@ async function seedProducts(categoryMap, supplierMap) {
       await prisma.product.create({
         data: {
           sku: item.sku,
+          slug: slugify(item.sku),
           name: item.model.startsWith(item.brand) ? item.model : `${item.brand} ${item.model}`,
           brand: item.brand,
           model: item.model,

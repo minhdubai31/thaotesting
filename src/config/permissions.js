@@ -23,6 +23,9 @@ const permissions = [
   "orders:read",
   "orders:create",
   "orders:update",
+  "coupons:read",
+  "coupons:manage",
+  "analytics:read",
   "users:update_roles"
 ];
 

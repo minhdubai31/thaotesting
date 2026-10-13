@@ -8,7 +8,9 @@ const {
   sendValidationError
 } = require("../utils/validation");
 
-const allowedStatuses = ["pending", "completed", "cancelled"];
+const { moveStock, orderTransitions, restockStatuses } = require("../utils/ecommerce");
+
+const allowedStatuses = ["pending", "paid", "shipped", "completed", "cancelled", "refunded"];
 
 function parseNonNegativeMoney(value, fallback = 0) {
   if (value === undefined) {
@@ -509,6 +511,7 @@ async function createOrder(req, res, next) {
 async function updateOrderStatus(req, res, next) {
   try {
     const status = String(req.body.status || "").trim().toLowerCase();
+    const trackingNumber = readOptionalString(req.body.trackingNumber);
     const errors = {};
 
     if (!status) {
@@ -525,32 +528,78 @@ async function updateOrderStatus(req, res, next) {
       return sendValidationError(res, errors);
     }
 
-    const existingOrder = await prisma.order.findUnique({
-      where: { id: req.params.id },
-      select: { id: true }
-    });
+    const order = await prisma.$transaction(async (tx) => {
+      const current = await tx.order.findUnique({
+        where: { id: req.params.id },
+        include: { items: true }
+      });
 
-    if (!existingOrder) {
-      addValidationError(errors, "id", "Order does not exist.");
-      return sendValidationError(res, errors);
-    }
+      if (!current) {
+        const error = new Error("Order not found");
+        error.status = 404;
+        throw error;
+      }
 
-    const order = await prisma.order.update({
-      where: { id: req.params.id },
-      data: { status },
-      include: orderInclude
-    });
+      if (current.status !== status && !(orderTransitions[current.status] || []).includes(status)) {
+        const error = new Error(
+          `Cannot change order from ${current.status} to ${status}.`
+        );
+        error.status = 409;
+        throw error;
+      }
+
+      const now = new Date();
+      const data = { status };
+
+      if (status === "paid") {
+        data.paymentStatus = "paid";
+        data.paidAt = now;
+      }
+      if (status === "shipped") {
+        data.shippedAt = now;
+        if (trackingNumber !== undefined) data.trackingNumber = trackingNumber;
+      }
+      if (status === "completed") {
+        data.deliveredAt = now;
+      }
+      if (status === "cancelled") {
+        data.cancelledAt = now;
+      }
+      if (status === "refunded") {
+        data.refundedAt = now;
+        data.paymentStatus = "refunded";
+      }
+
+      // Cancelled or refunded orders return their items to stock.
+      if (restockStatuses.includes(status) && !restockStatuses.includes(current.status)) {
+        for (const item of current.items) {
+          await moveStock(tx, {
+            productId: item.productId,
+            delta: item.quantity,
+            type: "return",
+            userId: req.user.id,
+            note: `${status === "refunded" ? "Refund" : "Cancel"} order ${current.id}`
+          });
+        }
+      }
+
+      return tx.order.update({
+        where: { id: current.id },
+        data,
+        include: orderInclude
+      });
+    }, { timeout: 30000, maxWait: 10000 });
 
     return sendSuccess(res, {
       message: "Order status updated",
       data: { order: serializeOrder(order) }
     });
   } catch (error) {
-    if (error.code === "P2025") {
+    if (error.status) {
       return sendError(res, {
-        statusCode: 404,
-        message: "Order not found",
-        errors: { id: ["Order not found."] }
+        statusCode: error.status,
+        message: error.message,
+        errors: { status: [error.message] }
       });
     }
 

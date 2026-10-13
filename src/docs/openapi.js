@@ -1,6 +1,7 @@
 const bearerAuth = [{ bearerAuth: [] }];
 
 const listKeys = {
+	StoreProduct: 'products',
 	Product: 'products',
 	Category: 'categories',
 	Supplier: 'suppliers',
@@ -113,6 +114,185 @@ const openApiSpec = {
 						},
 					},
 				},
+			},
+		},
+
+		'/api/store/products': {
+			get: {
+				tags: ['Storefront'],
+				summary: 'Browse the product catalog (public)',
+				parameters: [
+					...pageParams,
+					queryParam('q', 'Search name, SKU, brand or model.'),
+					queryParam('category', 'Category slug, for example dien-thoai-cao-cap.'),
+					queryParam('brand', 'Brand name.'),
+					queryParam('minPrice', 'Minimum price in VND.', { type: 'number' }),
+					queryParam('maxPrice', 'Maximum price in VND.', { type: 'number' }),
+					queryParam('sort', 'Sort order.', {
+						type: 'string',
+						enum: ['newest', 'price_asc', 'price_desc', 'rating', 'name'],
+					}),
+				],
+				responses: { 200: listResponse('StoreProduct', true) },
+			},
+		},
+		'/api/store/products/{slug}': {
+			get: {
+				tags: ['Storefront'],
+				summary: 'Product detail with reviews and related products (public)',
+				parameters: [{ name: 'slug', in: 'path', required: true, schema: { type: 'string' }, example: 'apl-ip17-256' }],
+				responses: {
+					200: { description: 'Product', content: { 'application/json': { schema: successEnvelope({ type: 'object', properties: { product: { $ref: '#/components/schemas/StoreProduct' }, related: { type: 'array', items: { $ref: '#/components/schemas/StoreProduct' } } } }) } } },
+					404: { $ref: '#/components/responses/NotFound' },
+				},
+			},
+		},
+		'/api/store/products/{slug}/reviews': {
+			post: {
+				tags: ['Storefront'],
+				summary: 'Review a product you have received',
+				description: 'Requires a completed order that contains the product. One review per customer per product.',
+				security: bearerAuth,
+				parameters: [{ name: 'slug', in: 'path', required: true, schema: { type: 'string' } }],
+				requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['rating'], properties: { rating: { type: 'integer', minimum: 1, maximum: 5, example: 5 }, title: { type: 'string' }, body: { type: 'string' } } } } } },
+				responses: { 201: { description: 'Review added' }, ...authResponses, 403: { description: 'Not purchased' }, 409: { description: 'Already reviewed' } },
+			},
+		},
+		'/api/store/categories': {
+			get: { tags: ['Storefront'], summary: 'List categories with product counts (public)', responses: { 200: { description: 'Categories' } } },
+		},
+		'/api/store/brands': {
+			get: { tags: ['Storefront'], summary: 'List brands (public)', responses: { 200: { description: 'Brands' } } },
+		},
+		'/api/cart': {
+			get: { tags: ['Cart'], summary: 'Get my cart with totals', description: 'Requires a signed-in customer.', security: bearerAuth, responses: { 200: { description: 'Cart' }, ...authResponses } },
+		},
+		'/api/cart/items': {
+			post: {
+				tags: ['Cart'],
+				summary: 'Add a product to my cart',
+				security: bearerAuth,
+				requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['productId'], properties: { productId: { type: 'string', format: 'uuid' }, quantity: { type: 'integer', minimum: 1, maximum: 99, default: 1 } } } } } },
+				responses: { 201: { description: 'Item added' }, ...authResponses, 409: { description: 'Not enough stock' } },
+			},
+		},
+		'/api/cart/items/{productId}': {
+			patch: {
+				tags: ['Cart'],
+				summary: 'Change quantity of a cart item',
+				security: bearerAuth,
+				parameters: [{ name: 'productId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+				requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['quantity'], properties: { quantity: { type: 'integer', minimum: 1, maximum: 99 } } } } } },
+				responses: { 200: { description: 'Cart updated' }, ...authResponses },
+			},
+			delete: {
+				tags: ['Cart'],
+				summary: 'Remove an item from my cart',
+				security: bearerAuth,
+				parameters: [{ name: 'productId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+				responses: { 200: { description: 'Item removed' }, ...authResponses },
+			},
+		},
+		'/api/addresses': {
+			get: { tags: ['Checkout'], summary: 'List my delivery addresses', security: bearerAuth, responses: { 200: { description: 'Addresses' }, ...authResponses } },
+			post: {
+				tags: ['Checkout'],
+				summary: 'Save a delivery address',
+				security: bearerAuth,
+				requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AddressInput' } } } },
+				responses: { 201: { description: 'Address saved' }, ...authResponses },
+			},
+		},
+		'/api/addresses/{id}': {
+			delete: {
+				tags: ['Checkout'],
+				summary: 'Delete one of my addresses',
+				security: bearerAuth,
+				parameters: [uuidParam],
+				responses: { 200: { $ref: '#/components/responses/Success' }, ...authResponses, 404: { $ref: '#/components/responses/NotFound' } },
+			},
+		},
+		'/api/checkout': {
+			post: {
+				tags: ['Checkout'],
+				summary: 'Place an order from my cart',
+				description: 'Reserves stock, applies an optional coupon and clears the cart. Payment is simulated: "cod" leaves the order pending, "card" marks it paid.',
+				security: bearerAuth,
+				requestBody: {
+					required: true,
+					content: {
+						'application/json': {
+							schema: {
+								type: 'object',
+								required: ['addressId'],
+								properties: {
+									addressId: { type: 'string', format: 'uuid' },
+									paymentMethod: { type: 'string', enum: ['cod', 'card'], default: 'cod' },
+									couponCode: { type: 'string', nullable: true, example: 'SAVE10' },
+								},
+							},
+						},
+					},
+				},
+				responses: { 201: { description: 'Order placed' }, ...authResponses, 409: { description: 'Stock or product problem' } },
+			},
+		},
+		'/api/my/orders': {
+			get: {
+				tags: ['Checkout'],
+				summary: 'List my orders (paged)',
+				security: bearerAuth,
+				parameters: pageParams,
+				responses: { 200: { description: 'Orders', content: { 'application/json': { schema: successEnvelope({ type: 'object', properties: { orders: { type: 'array', items: { $ref: '#/components/schemas/CustomerOrder' } }, meta: { $ref: '#/components/schemas/PageMeta' } } }) } } }, ...authResponses },
+			},
+		},
+		'/api/my/orders/{id}': {
+			get: {
+				tags: ['Checkout'],
+				summary: 'Get one of my orders',
+				security: bearerAuth,
+				parameters: [uuidParam],
+				responses: { 200: { description: 'Order' }, ...authResponses, 404: { $ref: '#/components/responses/NotFound' } },
+			},
+		},
+		'/api/my/orders/{id}/cancel': {
+			post: {
+				tags: ['Checkout'],
+				summary: 'Cancel my order while it is pending',
+				security: bearerAuth,
+				parameters: [uuidParam],
+				responses: { 200: { description: 'Order cancelled' }, ...authResponses, 409: { description: 'Order can no longer be cancelled' } },
+			},
+		},
+		'/api/coupons': {
+			get: { tags: ['Coupons'], summary: 'List coupons (paged)', description: 'Requires coupons:read.', security: bearerAuth, parameters: [...pageParams, queryParam('q', 'Search code.')], responses: { 200: { description: 'Coupons' }, ...authResponses } },
+			post: {
+				tags: ['Coupons'],
+				summary: 'Create a coupon',
+				description: 'Requires coupons:manage.',
+				security: bearerAuth,
+				requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CouponInput' } } } },
+				responses: { 201: { description: 'Coupon created' }, ...authResponses, 409: { description: 'Code exists' } },
+			},
+		},
+		'/api/coupons/{id}': {
+			patch: {
+				tags: ['Coupons'],
+				summary: 'Update a coupon',
+				description: 'Requires coupons:manage.',
+				security: bearerAuth,
+				parameters: [uuidParam],
+				requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CouponInput' } } } },
+				responses: { 200: { description: 'Coupon updated' }, ...authResponses, 404: { $ref: '#/components/responses/NotFound' } },
+			},
+		},
+		'/api/analytics/summary': {
+			get: {
+				tags: ['Analytics'],
+				summary: 'Revenue, orders by status, revenue by day, top products and low stock',
+				description: 'Requires analytics:read.',
+				security: bearerAuth,
+				responses: { 200: { description: 'Summary' }, ...authResponses },
 			},
 		},
 		'/api/signup': {
@@ -546,6 +726,68 @@ const openApiSpec = {
 						type: 'array',
 						items: { type: 'string', enum: ['admin', 'manager', 'staff', 'user'] },
 					},
+				},
+			},
+			StoreProduct: {
+				type: 'object',
+				properties: {
+					id: { type: 'string', format: 'uuid' },
+					slug: { type: 'string', example: 'apl-ip17-256' },
+					sku: { type: 'string' },
+					name: { type: 'string' },
+					brand: { type: 'string' },
+					model: { type: 'string' },
+					price: { type: 'string', example: '24590000.00' },
+					imageUrl: { type: 'string', nullable: true },
+					gallery: { type: 'array', items: { type: 'string' } },
+					description: { type: 'string', nullable: true },
+					ratingAverage: { type: 'string', example: '4.50' },
+					reviewCount: { type: 'integer' },
+					inStock: { type: 'boolean' },
+					category: { type: 'object', nullable: true, properties: { id: { type: 'string' }, name: { type: 'string' }, slug: { type: 'string' } } },
+				},
+			},
+			AddressInput: {
+				type: 'object',
+				required: ['fullName', 'phone', 'line1', 'city'],
+				properties: {
+					fullName: { type: 'string', example: 'Nguyen Van A' },
+					phone: { type: 'string', example: '0900000001' },
+					line1: { type: 'string', example: '12 Le Loi' },
+					city: { type: 'string', example: 'TP. Hồ Chí Minh' },
+					region: { type: 'string', nullable: true },
+					country: { type: 'string', default: 'Việt Nam' },
+					isDefault: { type: 'boolean' },
+				},
+			},
+			CustomerOrder: {
+				type: 'object',
+				properties: {
+					id: { type: 'string', format: 'uuid' },
+					status: { type: 'string', enum: ['pending', 'paid', 'shipped', 'completed', 'cancelled', 'refunded'] },
+					paymentMethod: { type: 'string', nullable: true, enum: ['cod', 'card'] },
+					paymentStatus: { type: 'string', enum: ['unpaid', 'paid', 'refunded'] },
+					couponCode: { type: 'string', nullable: true },
+					subtotal: { type: 'number' },
+					discountAmount: { type: 'number' },
+					shipping: { type: 'number' },
+					total: { type: 'number' },
+					trackingNumber: { type: 'string', nullable: true },
+					items: { type: 'array', items: { type: 'object' } },
+				},
+			},
+			CouponInput: {
+				type: 'object',
+				properties: {
+					code: { type: 'string', example: 'SAVE10' },
+					description: { type: 'string', nullable: true },
+					type: { type: 'string', enum: ['percent', 'fixed'] },
+					value: { type: 'number', example: 10 },
+					minSubtotal: { type: 'number', example: 0 },
+					usageLimit: { type: 'integer', nullable: true, example: 100 },
+					startsAt: { type: 'string', format: 'date-time', nullable: true },
+					endsAt: { type: 'string', format: 'date-time', nullable: true },
+					active: { type: 'boolean' },
 				},
 			},
 			PageMeta: {

@@ -1,6 +1,7 @@
 const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
 const { buildMeta, parsePagination, parseSort, readSearch } = require("../utils/pagination");
+const { slugify } = require("../utils/ecommerce");
 const {
   addValidationError,
   hasValidationErrors,
@@ -253,6 +254,7 @@ async function createProduct(req, res, next) {
         categoryId,
         supplierId,
         quantityPerUnit: readOptionalString(req.body.quantityPerUnit),
+        slug: slugify(sku),
         description: readOptionalString(req.body.description),
         imageUrl: readOptionalString(req.body.imageUrl),
         price,

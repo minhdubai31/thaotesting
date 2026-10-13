@@ -11,6 +11,9 @@ const masterDataRoutes = require("./routes/masterDataRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const productRoutes = require("./routes/productRoutes");
 const userRoutes = require("./routes/userRoutes");
+const storeRoutes = require("./routes/storeRoutes");
+const commerceRoutes = require("./routes/commerceRoutes");
+const adminCommerceRoutes = require("./routes/adminCommerceRoutes");
 const { sendError, sendSuccess } = require("./utils/response");
 
 const app = express();
@@ -90,6 +93,9 @@ app.use("/api", inventoryRoutes);
 app.use("/api", customerRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", userRoutes);
+app.use("/api", storeRoutes);
+app.use("/api", commerceRoutes);
+app.use("/api", adminCommerceRoutes);
 
 // React admin app (built to frontend/dist) is served from the same origin.
 const frontendDist = path.join(__dirname, "../frontend/dist");
