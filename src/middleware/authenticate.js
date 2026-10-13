@@ -45,6 +45,7 @@ async function authenticate(req, res, next) {
       select: {
         id: true,
         email: true,
+        username: true,
         roles: true,
         tokenVersion: true,
         createdAt: true

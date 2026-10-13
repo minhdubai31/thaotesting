@@ -97,27 +97,38 @@ Run this after `npm run db:push` to insert Vietnamese sample data:
 npm run db:seed
 ```
 
-The seed is idempotent and uses fixed IDs/upserts, so running it again updates the same sample rows instead of creating duplicates.
+The seed **clears all existing business data** (products, categories, suppliers, customers, orders, inventory, delivery companies, employees) before inserting new rows. Login accounts in `users` are kept.
+
+Product names, brands and prices come from 2026 Vietnamese retailer listings. Items marked `(est)` in `prisma/seed.js` are estimates. Check them against the official store before using them for real sales.
+
+To own the seeded orders with a known admin account, set these in `.env` before seeding:
+
+```env
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=choose-a-strong-password
+```
+
+If they are not set, the orders are attributed to the oldest existing user.
 
 Seeded data includes:
 
-- 20 users
-- 20 categories
-- 20 suppliers
-- 20 delivery companies
-- 20 employees
-- 50 customers
-- 50 products
-- 50 inventory items
-- 50 orders
-- 50 order items
-- 50 stock movements
+- 10 categories
+- 8 suppliers (brand distributors and a general accessories supplier)
+- 6 delivery companies
+- 6 employees
+- 30 customers (sample names and contact details, not real people)
+- 40 products with inventory
+- 40 orders, with order items and stock movements
 
-Seeded users use this default password:
+## Frontend
 
-```text
-secret123
-```
+A simple admin UI lives in `frontend/`. It is plain HTML, CSS and JavaScript with no build step.
+
+It covers sign-in, products (search, add, deactivate), orders (create, change status), customers (add) and inventory (adjust stock).
+
+Run it locally by opening `frontend/index.html` in a browser, or with any static server such as `npx serve frontend`. By default it calls the production API. Use the **API settings** box to point it at `http://localhost:3000`.
+
+Deploy on Vercel as a separate project with **Root Directory** set to `frontend`. No build command or output directory is needed.
 
 ## Database
 

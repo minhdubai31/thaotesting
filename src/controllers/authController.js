@@ -20,6 +20,7 @@ function sanitizeUser(user) {
   return {
     id: user.id,
     email: user.email,
+    username: user.username ?? null,
     roles: user.roles || [],
     createdAt: user.createdAt
   };
@@ -43,6 +44,7 @@ function createToken(user) {
 async function signup(req, res, next) {
   try {
     const email = normalizeEmail(req.body.email);
+    const username = String(req.body.username || "").trim().toLowerCase();
     const password = String(req.body.password || "");
     const errors = {};
 
@@ -50,6 +52,14 @@ async function signup(req, res, next) {
       addValidationError(errors, "email", "Email is required.");
     } else if (!isValidEmail(email)) {
       addValidationError(errors, "email", "Email must be a valid email address.");
+    }
+
+    if (username && !/^[a-z0-9_]{3,30}$/.test(username)) {
+      addValidationError(
+        errors,
+        "username",
+        "Username must be 3-30 characters: letters, numbers or underscore."
+      );
     }
 
     if (!password) {
@@ -76,17 +86,31 @@ async function signup(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    if (username) {
+      const existingUsername = await prisma.user.findUnique({
+        where: { username },
+        select: { id: true }
+      });
+
+      if (existingUsername) {
+        addValidationError(errors, "username", "Username already exists.");
+        return sendValidationError(res, errors);
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, passwordSaltRounds);
 
     const user = await prisma.user.create({
       data: {
         email,
+        username: username || null,
         passwordHash,
         roles: ["user"]
       },
       select: {
         id: true,
         email: true,
+        username: true,
         roles: true,
         tokenVersion: true,
         createdAt: true
@@ -116,14 +140,17 @@ async function signup(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    const email = normalizeEmail(req.body.email);
+    // Accepts an email or a username in "identifier" (email/username also work).
+    const identifier = String(
+      req.body.identifier ?? req.body.username ?? req.body.email ?? ""
+    )
+      .trim()
+      .toLowerCase();
     const password = String(req.body.password || "");
     const errors = {};
 
-    if (!email) {
-      addValidationError(errors, "email", "Email is required.");
-    } else if (!isValidEmail(email)) {
-      addValidationError(errors, "email", "Email must be a valid email address.");
+    if (!identifier) {
+      addValidationError(errors, "identifier", "Username or email is required.");
     }
 
     if (!password) {
@@ -134,11 +161,14 @@ async function login(req, res, next) {
       return sendValidationError(res, errors);
     }
 
+    const isEmail = identifier.includes("@");
+
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: isEmail ? { email: identifier } : { username: identifier },
       select: {
         id: true,
         email: true,
+        username: true,
         passwordHash: true,
         roles: true,
         createdAt: true
@@ -171,6 +201,7 @@ async function login(req, res, next) {
       select: {
         id: true,
         email: true,
+        username: true,
         roles: true,
         tokenVersion: true,
         createdAt: true
