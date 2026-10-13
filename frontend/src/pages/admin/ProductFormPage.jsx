@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
-import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Space, Spin, Switch, Popconfirm, Image, App } from "antd";
+import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Space, Spin, Switch, Popconfirm, Image, Upload, App } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 import { api } from "../../lib/api";
+import { imageFileToDataUrl } from "../../lib/image";
 import { useMasters } from "../../lib/useMasters";
 import ProductImage from "../../components/ProductImage";
 
@@ -55,6 +57,16 @@ export default function ProductFormPage() {
         categoryId: product.data.categoryId || undefined,
         supplierId: product.data.supplierId || undefined,
       };
+
+  // Keeps the photo in the form only; it is saved with the product, not uploaded anywhere else.
+  async function handleImageUpload(file) {
+    try {
+      form.setFieldValue("imageUrl", await imageFileToDataUrl(file));
+    } catch (err) {
+      message.error(err.message);
+    }
+    return false;
+  }
 
   function handleFinish(values) {
     const category = masters?.categories.find((c) => c.id === values.categoryId);
@@ -136,8 +148,20 @@ export default function ProductFormPage() {
                 </Form.Item>
               </Col>
               <Col xs={24}>
-                <Form.Item name="imageUrl" label="Image URL">
-                  <Input placeholder="https://…" />
+                <Form.Item name="imageUrl" hidden>
+                  <Input />
+                </Form.Item>
+                <Form.Item label="Product image" extra="JPEG, PNG or WebP. Large photos are resized automatically.">
+                  <Space>
+                    <Upload accept="image/jpeg,image/png,image/webp" showUploadList={false} beforeUpload={handleImageUpload}>
+                      <Button icon={<UploadOutlined />}>{imageUrl ? "Replace image" : "Upload image"}</Button>
+                    </Upload>
+                    {imageUrl && (
+                      <Button danger onClick={() => form.setFieldValue("imageUrl", "")}>
+                        Remove
+                      </Button>
+                    )}
+                  </Space>
                 </Form.Item>
               </Col>
               <Col xs={24}>

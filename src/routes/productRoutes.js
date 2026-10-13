@@ -2,6 +2,7 @@ const express = require("express");
 const {
   createProduct,
   getProduct,
+  getProductImage,
   deleteProduct,
   listProducts,
   updateProduct
@@ -25,6 +26,8 @@ router.get(
   validateUuidParam("id"),
   getProduct
 );
+// Public: the storefront shows these photos to everyone.
+router.get("/products/:id/image", validateUuidParam("id"), getProductImage);
 router.post(
   "/products",
   authenticate,

@@ -2,6 +2,7 @@ const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
 const { buildMeta, parsePagination, readSearch } = require("../utils/pagination");
 const { isValidUuid } = require("../utils/validation");
+const { publicImageUrl } = require("../utils/productImage");
 const {
   couponDiscount,
   couponProblem,
@@ -28,7 +29,7 @@ function serializeCart(cart) {
       productId: item.productId,
       slug: item.product.slug,
       name: item.product.name,
-      imageUrl: item.product.imageUrl,
+      imageUrl: publicImageUrl(item.product),
       unitPrice: price,
       quantity: item.quantity,
       lineTotal: price * item.quantity,
@@ -348,7 +349,7 @@ function httpError(status, message, errors) {
 // ----- customer orders -----
 
 const orderInclude = {
-  items: { include: { product: { select: { name: true, slug: true, imageUrl: true } } } }
+  items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, updatedAt: true } } } }
 };
 
 function serializeOrder(order) {
@@ -375,7 +376,7 @@ function serializeOrder(order) {
       productId: item.productId,
       name: item.product?.name,
       slug: item.product?.slug,
-      imageUrl: item.product?.imageUrl,
+      imageUrl: publicImageUrl(item.product),
       quantity: item.quantity,
       unitPrice: Number(item.unitPrice),
       lineTotal: Number(item.lineTotal)

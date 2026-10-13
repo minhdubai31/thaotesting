@@ -7,6 +7,7 @@ const {
   isValidUuid,
   sendValidationError
 } = require("../utils/validation");
+const { withPublicImage } = require("../utils/productImage");
 
 function parseQuantity(value) {
   const quantity = Number(value);
@@ -47,7 +48,10 @@ async function listInventory(req, res, next) {
 
     return sendSuccess(res, {
       message: "Inventory fetched",
-      data: { inventory, meta: buildMeta({ page, pageSize, total }) }
+      data: {
+        inventory: inventory.map((item) => ({ ...item, product: withPublicImage(item.product) })),
+        meta: buildMeta({ page, pageSize, total })
+      }
     });
   } catch (error) {
     return next(error);

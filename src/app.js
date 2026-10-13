@@ -76,7 +76,8 @@ app.use(
   })
 );
 app.use(cors());
-app.use(express.json());
+// Product photos are sent as base64 inside the JSON body, so allow more than the 100 kB default.
+app.use(express.json({ limit: "2mb" }));
 app.use(morgan("dev"));
 
 app.get("/health", (req, res) => {

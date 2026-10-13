@@ -2,6 +2,7 @@ const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
 const { buildMeta, parsePagination, parseSort, readSearch } = require("../utils/pagination");
 const { slugify } = require("../utils/ecommerce");
+const { IMAGE_DATA_URL, MAX_IMAGE_LENGTH, withPublicImage } = require("../utils/productImage");
 const {
   addValidationError,
   hasValidationErrors,
@@ -30,6 +31,38 @@ function readOptionalString(value) {
 
   const normalized = String(value || "").trim();
   return normalized || null;
+}
+
+// Accepts a web link or an uploaded image. Returns undefined when the field was not sent,
+// or when the form sends back the image URL the API gave it (nothing changed).
+function readImageUrl(value, errors) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const text = readOptionalString(value);
+
+  if (!text) {
+    return null;
+  }
+
+  if (text.startsWith("/api/products/")) {
+    return undefined;
+  }
+
+  if (text.startsWith("data:")) {
+    if (!IMAGE_DATA_URL.test(text)) {
+      addValidationError(errors, "imageUrl", "Image must be a JPEG, PNG or WebP file.");
+    } else if (text.length > MAX_IMAGE_LENGTH) {
+      addValidationError(errors, "imageUrl", "Image is too large. Upload a smaller file.");
+    }
+    return text;
+  }
+
+  if (!/^https?:\/\//i.test(text)) {
+    addValidationError(errors, "imageUrl", "Image must be a web link or an uploaded image.");
+  }
+  return text;
 }
 
 function readOptionalId(value) {
@@ -100,7 +133,7 @@ async function listProducts(req, res, next) {
 
     return sendSuccess(res, {
       message: "Products fetched",
-      data: { products, meta: buildMeta({ page, pageSize, total }) }
+      data: { products: products.map(withPublicImage), meta: buildMeta({ page, pageSize, total }) }
     });
   } catch (error) {
     return next(error);
@@ -124,7 +157,7 @@ async function getProduct(req, res, next) {
 
     return sendSuccess(res, {
       message: "Product fetched",
-      data: { product }
+      data: { product: withPublicImage(product) }
     });
   } catch (error) {
     return next(error);
@@ -240,6 +273,8 @@ async function createProduct(req, res, next) {
       addValidationError(errors, "supplierId", "Supplier does not exist.");
     }
 
+    const imageUrl = readImageUrl(req.body.imageUrl, errors);
+
     if (hasValidationErrors(errors)) {
       return sendValidationError(res, errors);
     }
@@ -256,7 +291,7 @@ async function createProduct(req, res, next) {
         quantityPerUnit: readOptionalString(req.body.quantityPerUnit),
         slug: slugify(sku),
         description: readOptionalString(req.body.description),
-        imageUrl: readOptionalString(req.body.imageUrl),
+        imageUrl,
         price,
         unitsInStock: quantity,
         unitsOnOrder,
@@ -273,7 +308,7 @@ async function createProduct(req, res, next) {
     return sendSuccess(res, {
       statusCode: 201,
       message: "Product created",
-      data: { product }
+      data: { product: withPublicImage(product) }
     });
   } catch (error) {
     if (error.code === "P2002") {
@@ -381,10 +416,12 @@ async function updateProduct(req, res, next) {
       }
     }
 
-    for (const field of ["description", "imageUrl"]) {
-      if (req.body[field] !== undefined) {
-        data[field] = readOptionalString(req.body[field]);
-      }
+    if (req.body.description !== undefined) {
+      data.description = readOptionalString(req.body.description);
+    }
+
+    if (req.body.imageUrl !== undefined) {
+      data.imageUrl = readImageUrl(req.body.imageUrl, errors);
     }
 
     if (req.body.isActive !== undefined) {
@@ -477,7 +514,7 @@ async function updateProduct(req, res, next) {
 
     return sendSuccess(res, {
       message: "Product updated",
-      data: { product }
+      data: { product: withPublicImage(product) }
     });
   } catch (error) {
     if (error.code === "P2025") {
@@ -543,8 +580,34 @@ async function deleteProduct(req, res, next) {
   }
 }
 
+// Serves an uploaded photo as a real image so the browser can cache it.
+async function getProductImage(req, res, next) {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      select: { imageUrl: true }
+    });
+    const match = product?.imageUrl?.match(IMAGE_DATA_URL);
+
+    if (!match) {
+      return sendError(res, {
+        statusCode: 404,
+        message: "Image not found",
+        errors: { image: ["This product has no uploaded image."] }
+      });
+    }
+
+    res.set("Cache-Control", "public, max-age=86400");
+    res.type(match[1]).send(Buffer.from(match[2], "base64"));
+    return undefined;
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   getProduct,
+  getProductImage,
   listProducts,
   createProduct,
   updateProduct,

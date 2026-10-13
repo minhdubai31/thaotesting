@@ -2,6 +2,7 @@ const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
 const { buildMeta, parsePagination, readSearch } = require("../utils/pagination");
 const { isValidUuid } = require("../utils/validation");
+const { publicImageUrl } = require("../utils/productImage");
 
 // Public catalog: only active, non-discontinued products are shown.
 const storeSorts = {
@@ -26,7 +27,7 @@ function publicProduct(product) {
     brand: product.brand,
     model: product.model,
     price: product.price,
-    imageUrl: product.imageUrl,
+    imageUrl: publicImageUrl(product),
     gallery: product.gallery,
     description: product.description,
     specs: product.specs,

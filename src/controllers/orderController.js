@@ -9,6 +9,7 @@ const {
 } = require("../utils/validation");
 
 const { moveStock, orderTransitions, restockStatuses } = require("../utils/ecommerce");
+const { withPublicImage } = require("../utils/productImage");
 
 const allowedStatuses = ["pending", "paid", "shipped", "completed", "cancelled", "refunded"];
 
@@ -137,7 +138,8 @@ function serializeOrder(order) {
       ...item,
       unitPrice: item.unitPrice.toString(),
       discount: item.discount.toString(),
-      lineTotal: item.lineTotal.toString()
+      lineTotal: item.lineTotal.toString(),
+      product: withPublicImage(item.product)
     }))
   };
 }
