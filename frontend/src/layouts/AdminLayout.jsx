@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Button, Dropdown, Layout, Menu, Space, Typography } from "antd";
 import {
+  ApiOutlined,
   AppstoreOutlined,
   DashboardOutlined,
   DatabaseOutlined,
@@ -44,11 +45,15 @@ export default function AdminLayout() {
 
   const menu = [
     { key: "store", icon: <InboxOutlined />, label: <Link to="/">Back to store</Link> },
+    { key: "api-docs", icon: <ApiOutlined />, label: "API docs" },
     { type: "divider" },
     { key: "logout", icon: <LogoutOutlined />, label: "Log out", danger: true },
   ];
 
   function handleMenu({ key }) {
+    if (key === "api-docs") {
+      window.open("/api-docs/", "_blank", "noopener");
+    }
     if (key === "logout") {
       logout();
       navigate("/login");
