@@ -1,3 +1,4 @@
+const path = require("path");
 const cors = require("cors");
 const express = require("express");
 const helmet = require("helmet");
@@ -79,6 +80,9 @@ app.use("/api", inventoryRoutes);
 app.use("/api", customerRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", userRoutes);
+
+// Admin frontend (plain HTML/JS in frontend/) is served from the same origin.
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.use((req, res) => {
   sendError(res, {

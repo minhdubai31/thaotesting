@@ -1,5 +1,7 @@
-// Points at the deployed backend by default. Change it in the settings box if you run the API locally.
-const DEFAULT_API_BASE = "https://thaotesting-git-main-minhdubai.vercel.app";
+// The API is served from the same origin as this page. When the page is opened as a local file,
+// fall back to the deployed backend. Change it in the API settings box if needed.
+const DEFAULT_API_BASE =
+  location.protocol.startsWith("http") ? location.origin : "https://thaotesting-git-main-minhdubai.vercel.app";
 
 const storage = {
   get(key, fallback = "") {

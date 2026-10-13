@@ -122,13 +122,13 @@ Seeded data includes:
 
 ## Frontend
 
-A simple admin UI lives in `frontend/`. It is plain HTML, CSS and JavaScript with no build step.
+A simple admin UI lives in `frontend/` (plain HTML, CSS and JavaScript, no build step). The backend serves it from the same origin, so one deployment covers both.
 
-It covers sign-in, products (search, add, deactivate), orders (create, change status), customers (add) and inventory (adjust stock).
+- Open `https://thaotesting-git-main-minhdubai.vercel.app/` for the admin UI.
+- The API stays under `/api`, and Swagger stays at `/api-docs`.
+- Locally, run `npm run dev` and open `http://localhost:3000/`.
 
-Run it locally by opening `frontend/index.html` in a browser, or with any static server such as `npx serve frontend`. By default it calls the production API. Use the **API settings** box to point it at `http://localhost:3000`.
-
-Deploy on Vercel as a separate project with **Root Directory** set to `frontend`. No build command or output directory is needed.
+It covers sign-in (username or email), products (search, add, deactivate), orders (create, change status), customers (add) and inventory (adjust stock).
 
 ## Database
 
