@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Badge, Button, Dropdown, Input, Layout, Menu, Space, Typography } from "antd";
-import { HomeOutlined, ShoppingCartOutlined, UserOutlined, AppstoreOutlined, LogoutOutlined, DashboardOutlined, FileTextOutlined } from "@ant-design/icons";
+import { HomeOutlined, SearchOutlined, ShoppingCartOutlined, UserOutlined, AppstoreOutlined, LogoutOutlined, DashboardOutlined, FileTextOutlined } from "@ant-design/icons";
 import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../lib/useCart";
 
@@ -55,12 +55,13 @@ export default function StoreLayout() {
           Thao Store
         </Link>
         <Menu mode="horizontal" selectedKeys={selected} items={menuItems} className="store-menu" disabledOverflow />
-        <Input.Search
+        <Input
+          prefix={<SearchOutlined style={{ color: "rgba(0, 0, 0, 0.45)" }} />}
           placeholder="Search phones, tablets, accessories"
           allowClear
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          onSearch={handleSearch}
+          onPressEnter={() => handleSearch(search)}
           className="store-search"
         />
         <Space size="middle">

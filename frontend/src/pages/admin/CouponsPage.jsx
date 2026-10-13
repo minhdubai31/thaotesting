@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { api, toQuery } from "../../lib/api";
 import { vnd } from "../../lib/format";
 import { useTableParams } from "../../lib/useTableParams";
+import SearchInput from "../../components/SearchInput";
 
 export default function CouponsPage() {
   const { message } = App.useApp();
@@ -75,7 +76,7 @@ export default function CouponsPage() {
       }
     >
       <Space style={{ marginBottom: 16 }}>
-        <Input.Search placeholder="Search code" allowClear defaultValue={table.filters.q} key={table.filters.q || "q"} onSearch={(v) => table.setFilters({ q: v.trim() })} style={{ width: 240 }} />
+        <SearchInput placeholder="Search code" value={table.filters.q} onSearch={(q) => table.setFilters({ q })} width={240} />
       </Space>
       <Table
         rowKey="id"

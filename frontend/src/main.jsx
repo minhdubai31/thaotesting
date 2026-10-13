@@ -13,13 +13,13 @@ const queryClient = new QueryClient({
 
 const theme = {
   token: {
-    colorPrimary: "#db2777",
-    colorLink: "#db2777",
-    colorLinkHover: "#9d174d",
-    colorBgLayout: "#fdf6f9",
-    borderRadius: 14,
-    borderRadiusLG: 18,
-    borderRadiusSM: 10,
+    colorPrimary: "#1677ff",
+    colorLink: "#1677ff",
+    colorLinkHover: "#0958d9",
+    colorBgLayout: "#f5f5f5",
+    borderRadius: 6,
+    borderRadiusLG: 8,
+    borderRadiusSM: 4,
     boxShadow: "none",
     boxShadowSecondary: "none",
     boxShadowTertiary: "none",
@@ -27,26 +27,21 @@ const theme = {
     fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
   },
   components: {
-    Layout: { headerBg: "#ffffff", bodyBg: "#fdf6f9", siderBg: "#2a1420" },
-    Menu: { darkItemBg: "#2a1420", darkItemSelectedBg: "#db2777", darkItemHoverBg: "#3d1d2e" },
+    Layout: { headerBg: "#ffffff", bodyBg: "#f5f5f5" },
     Button: {
       primaryShadow: "none",
       defaultShadow: "none",
       dangerShadow: "none",
-      borderRadius: 999,
       fontWeight: 500,
     },
     Card: { headerBg: "#ffffff", boxShadowTertiary: "none" },
     Table: {
-      headerBg: "#fce7f3",
-      headerColor: "#831843",
-      headerSplitColor: "transparent",
-      borderColor: "#f3c6dd",
-      rowHoverBg: "#fdf2f8",
-      headerSortActiveBg: "#fbcfe8",
-      headerSortHoverBg: "#fbcfe8",
+      headerBg: "#fafafa",
+      headerColor: "rgba(0, 0, 0, 0.88)",
+      headerSortActiveBg: "#f0f0f0",
+      headerSortHoverBg: "#f0f0f0",
+      rowHoverBg: "#fafafa",
     },
-    Select: { optionSelectedBg: "#fce7f3" },
   },
 };
 

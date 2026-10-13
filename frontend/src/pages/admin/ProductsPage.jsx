@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { App, Button, Card, Input, Popconfirm, Select, Space, Table, Tag, Typography } from "antd";
+import { App, Button, Card, Popconfirm, Select, Space, Table, Tag, Typography } from "antd";
 import { EditOutlined, PlusOutlined, StopOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { api, toQuery } from "../../lib/api";
 import { vnd } from "../../lib/format";
 import { useMasters } from "../../lib/useMasters";
 import { useTableParams } from "../../lib/useTableParams";
 import ProductImage from "../../components/ProductImage";
+import SearchInput from "../../components/SearchInput";
 
 export default function ProductsPage() {
   const navigate = useNavigate();
@@ -97,13 +98,10 @@ export default function ProductsPage() {
       }
     >
       <Space wrap style={{ marginBottom: 16 }}>
-        <Input.Search
+        <SearchInput
           placeholder="Name, SKU, brand"
-          allowClear
-          defaultValue={table.filters.q}
-          key={table.filters.q || "q"}
-          onSearch={(value) => table.setFilters({ ...table.filters, q: value.trim() })}
-          style={{ width: 260 }}
+          value={table.filters.q}
+          onSearch={(q) => table.setFilters({ ...table.filters, q })}
         />
         <Select
           allowClear

@@ -1,9 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, Card, Input, Space, Table, Tag } from "antd";
+import { Button, Card, Space, Table, Tag } from "antd";
 import { api, toQuery } from "../../lib/api";
 import { useTableParams } from "../../lib/useTableParams";
 import ProductImage from "../../components/ProductImage";
+import SearchInput from "../../components/SearchInput";
 
 export default function InventoryPage() {
   const navigate = useNavigate();
@@ -44,14 +45,7 @@ export default function InventoryPage() {
       }
     >
       <Space style={{ marginBottom: 16 }}>
-        <Input.Search
-          placeholder="Product name, SKU, brand"
-          allowClear
-          defaultValue={table.filters.q}
-          key={table.filters.q || "q"}
-          onSearch={(value) => table.setFilters({ q: value.trim() })}
-          style={{ width: 300 }}
-        />
+        <SearchInput placeholder="Product name, SKU, brand" value={table.filters.q} onSearch={(q) => table.setFilters({ q })} width={300} />
       </Space>
       <Table
         rowKey="id"

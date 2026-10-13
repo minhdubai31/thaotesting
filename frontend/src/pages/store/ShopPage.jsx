@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { Col, Empty, Pagination, Row, Select, Space, Spin, Input, InputNumber, Button, Typography } from "antd";
+import { Col, Empty, Pagination, Row, Select, Space, Spin, InputNumber, Button, Typography } from "antd";
 import { api, toQuery } from "../../lib/api";
 import ProductCard from "../../components/ProductCard";
+import SearchInput from "../../components/SearchInput";
 
 const sortOptions = [
   { value: "newest", label: "Newest" },
@@ -62,13 +63,7 @@ export default function ShopPage() {
 
       <Row gutter={[12, 12]} align="middle">
         <Col xs={24} md={8}>
-          <Input.Search
-            placeholder="Search products"
-            allowClear
-            defaultValue={filters.q}
-            key={filters.q}
-            onSearch={(value) => update({ q: value.trim() })}
-          />
+          <SearchInput placeholder="Search products" value={filters.q} onSearch={(q) => update({ q })} width="100%" />
         </Col>
         <Col xs={12} md={4}>
           <Select

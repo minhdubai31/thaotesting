@@ -1,12 +1,12 @@
 /* Only layout glue. Components are styled by Ant Design. */
 html, body, #root { margin: 0; padding: 0; min-height: 100%; }
-body { background: #fdf6f9; }
+body { background: #f5f5f5; }
 
 .logo {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #db2777, #f472b6);
+  background: #1677ff;
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -29,21 +29,21 @@ body { background: #fdf6f9; }
   top: 0;
   z-index: 10;
 }
-.brand { font-weight: 700; font-size: 18px; color: #831843; white-space: nowrap; }
-.brand:hover { color: #db2777; }
+.brand { font-weight: 700; font-size: 18px; color: rgba(0, 0, 0, 0.88); white-space: nowrap; }
+.brand:hover { color: #1677ff; }
 .store-menu { flex: 1; min-width: 0; border-bottom: none; }
 .store-search { width: 280px; }
 .store-content { padding: 24px; max-width: 1200px; width: 100%; margin: 0 auto; }
 .store-footer { text-align: center; background: transparent; }
 .cart-icon { font-size: 20px; color: rgba(0, 0, 0, 0.85); }
 .product-card { height: 100%; }
-.product-image { width: 100%; object-fit: contain; background: #fff; display: block; }
-.product-placeholder { width: 100%; display: grid; place-items: center; background: #f5f7fa; color: #bfbfbf; font-size: 36px; }
+.product-image { width: 100%; object-fit: contain; background: #fff; display: block; border-radius: 8px; }
+.product-placeholder { width: 100%; display: grid; place-items: center; background: #f5f7fa; border-radius: 8px; color: #bfbfbf; font-size: 36px; }
 .section-title { margin: 24px 0 12px; }
 .admin-brand { padding: 16px; white-space: nowrap; overflow: hidden; }
 .admin-header { background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #f0f0f0; }
 .admin-content { padding: 24px; }
-.page-card { background: #fff; border-radius: 12px; padding: 24px; }
+.page-card { background: #fff; border-radius: 8px; padding: 24px; }
 .kpi-value { font-size: 22px; font-weight: 600; }
 .muted { color: rgba(0, 0, 0, 0.45); }
 @media (max-width: 900px) {
@@ -51,14 +51,3 @@ body { background: #fdf6f9; }
   .store-header { flex-wrap: wrap; height: auto; padding: 12px; }
   .store-content { padding: 12px; }
 }
-
-/* Tables: clear outline and row striping so rows are easy to follow. */
-.ant-table-wrapper .ant-table {
-  border: 1px solid #f3c6dd;
-  border-radius: 14px;
-  overflow: hidden;
-}
-.ant-table-wrapper .ant-table-tbody > tr > td { border-bottom: 1px solid #fbe3ef; }
-.ant-table-wrapper .ant-table-tbody > tr:nth-child(even) > td { background: #fffafd; }
-.ant-table-wrapper .ant-table-tbody > tr:hover > td { background: #fdf2f8 !important; }
-.ant-table-wrapper .ant-table-thead > tr > th { font-weight: 600; }

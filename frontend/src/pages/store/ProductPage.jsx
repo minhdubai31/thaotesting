@@ -72,7 +72,7 @@ export default function ProductPage() {
                   key={src}
                   type="button"
                   onClick={() => setActiveImage(src)}
-                  style={{ border: src === shown ? "2px solid #db2777" : "1px solid #d9d9d9", borderRadius: 8, padding: 4, background: "#fff", cursor: "pointer" }}
+                  style={{ border: src === shown ? "2px solid #1677ff" : "1px solid #d9d9d9", borderRadius: 8, padding: 4, background: "#fff", cursor: "pointer" }}
                 >
                   <img src={src} alt="" style={{ width: 64, height: 64, objectFit: "contain" }} />
                 </button>
@@ -93,7 +93,7 @@ export default function ProductPage() {
                 {Number(product.ratingAverage).toFixed(1)} · {product.reviewCount} reviews
               </Typography.Text>
             </Space>
-            <Typography.Title level={2} style={{ margin: "8px 0", color: "#db2777" }}>
+            <Typography.Title level={2} style={{ margin: "8px 0" }}>
               {vnd(product.price)}
             </Typography.Title>
             {product.inStock ? <Tag color="green">In stock</Tag> : <Tag color="red">Out of stock</Tag>}

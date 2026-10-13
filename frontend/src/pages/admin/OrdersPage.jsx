@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { App, Button, Card, Input, Modal, Select, Space, Table, Typography } from "antd";
+import { App, Button, Card, Modal, Select, Space, Table, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { api, toQuery } from "../../lib/api";
 import { NEXT_STATUSES, ORDER_STATUSES, STATUS_LABELS, dateText, vnd } from "../../lib/format";
 import { useTableParams } from "../../lib/useTableParams";
 import StatusTag from "../../components/StatusTag";
+import SearchInput from "../../components/SearchInput";
 
 export default function OrdersPage() {
   const { message, modal } = App.useApp();
@@ -99,13 +100,11 @@ export default function OrdersPage() {
       }
     >
       <Space wrap style={{ marginBottom: 16 }}>
-        <Input.Search
+        <SearchInput
           placeholder="Customer, ship name, city"
-          allowClear
-          defaultValue={table.filters.q}
-          key={table.filters.q || "q"}
-          onSearch={(value) => table.setFilters({ ...table.filters, q: value.trim() })}
-          style={{ width: 280 }}
+          value={table.filters.q}
+          onSearch={(q) => table.setFilters({ ...table.filters, q })}
+          width={280}
         />
         <Select
           allowClear

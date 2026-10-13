@@ -169,7 +169,7 @@ export default function CheckoutPage() {
             <Typography.Title level={5} style={{ margin: 0 }}>
               Total
             </Typography.Title>
-            <Typography.Title level={5} style={{ margin: 0, color: "#db2777" }}>
+            <Typography.Title level={5} style={{ margin: 0 }}>
               {vnd(cart.data.total)}
             </Typography.Title>
           </Row>

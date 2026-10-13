@@ -1,9 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, Input, Space, Table } from "antd";
+import { Button, Card, Space, Table } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { api, toQuery } from "../../lib/api";
 import { useTableParams } from "../../lib/useTableParams";
+import SearchInput from "../../components/SearchInput";
 
 export default function CustomersPage() {
   const navigate = useNavigate();
@@ -33,14 +34,7 @@ export default function CustomersPage() {
       }
     >
       <Space style={{ marginBottom: 16 }}>
-        <Input.Search
-          placeholder="Name, phone, email"
-          allowClear
-          defaultValue={table.filters.q}
-          key={table.filters.q || "q"}
-          onSearch={(value) => table.setFilters({ q: value.trim() })}
-          style={{ width: 300 }}
-        />
+        <SearchInput placeholder="Name, phone, email" value={table.filters.q} onSearch={(q) => table.setFilters({ q })} width={300} />
       </Space>
       <Table
         rowKey="id"
