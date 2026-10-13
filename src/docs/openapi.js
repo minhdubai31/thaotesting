@@ -94,7 +94,7 @@ const openApiSpec = {
 					required: true,
 					content: {
 						'application/json': {
-							schema: { $ref: '#/components/schemas/AuthRequest' },
+							schema: { $ref: '#/components/schemas/SignupRequest' },
 						},
 					},
 				},
@@ -120,12 +120,12 @@ const openApiSpec = {
 		'/api/login': {
 			post: {
 				tags: ['Auth'],
-				summary: 'Log in and receive a JWT',
+				summary: 'Log in with a username or email and receive a JWT',
 				requestBody: {
 					required: true,
 					content: {
 						'application/json': {
-							schema: { $ref: '#/components/schemas/AuthRequest' },
+							schema: { $ref: '#/components/schemas/LoginRequest' },
 						},
 					},
 				},
@@ -432,11 +432,33 @@ const openApiSpec = {
 			},
 		},
 		schemas: {
-			AuthRequest: {
+			LoginRequest: {
+				type: 'object',
+				description: 'Sign in with either a username or an email address in "identifier".',
+				required: ['identifier', 'password'],
+				properties: {
+					identifier: {
+						type: 'string',
+						description: 'Username or email address.',
+						example: 'admin',
+					},
+					password: { type: 'string', example: 'admin' },
+				},
+			},
+			SignupRequest: {
 				type: 'object',
 				required: ['email', 'password'],
 				properties: {
-					email: { type: 'string', format: 'email', example: 'admin@example.com' },
+					email: { type: 'string', format: 'email', example: 'jane@example.com' },
+					username: {
+						type: 'string',
+						nullable: true,
+						minLength: 3,
+						maxLength: 30,
+						pattern: '^[a-z0-9_]{3,30}$',
+						description: 'Optional. Letters, numbers and underscore. Stored in lowercase.',
+						example: 'jane_doe',
+					},
 					password: { type: 'string', minLength: 8, example: 'secret123' },
 				},
 			},
@@ -445,6 +467,7 @@ const openApiSpec = {
 				properties: {
 					id: { type: 'string', format: 'uuid' },
 					email: { type: 'string', format: 'email' },
+					username: { type: 'string', nullable: true, example: 'admin' },
 					roles: {
 						type: 'array',
 						items: { type: 'string', enum: ['admin', 'manager', 'staff', 'user'] },
