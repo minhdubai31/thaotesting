@@ -48,6 +48,7 @@ export default function InventoryPage() {
         <SearchInput placeholder="Product name, SKU, brand" value={table.filters.q} onSearch={(q) => table.setFilters({ q })} width={300} />
       </Space>
       <Table
+        bordered
         rowKey="id"
         loading={isLoading}
         columns={columns}

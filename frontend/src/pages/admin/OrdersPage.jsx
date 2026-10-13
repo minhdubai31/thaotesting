@@ -116,6 +116,7 @@ export default function OrdersPage() {
         />
       </Space>
       <Table
+        bordered
         rowKey="id"
         loading={isLoading}
         columns={columns}

@@ -66,6 +66,7 @@ export default function DashboardPage() {
         <Col xs={24} lg={12}>
           <Card title="Top products by revenue">
             <Table
+              bordered
               size="small"
               pagination={false}
               rowKey="productId"

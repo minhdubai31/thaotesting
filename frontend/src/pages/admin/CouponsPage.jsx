@@ -79,6 +79,7 @@ export default function CouponsPage() {
         <SearchInput placeholder="Search code" value={table.filters.q} onSearch={(q) => table.setFilters({ q })} width={240} />
       </Space>
       <Table
+        bordered
         rowKey="id"
         loading={isLoading}
         columns={columns}

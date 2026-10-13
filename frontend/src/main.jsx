@@ -20,8 +20,6 @@ const theme = {
     borderRadius: 6,
     borderRadiusLG: 8,
     borderRadiusSM: 4,
-    boxShadow: "none",
-    boxShadowSecondary: "none",
     boxShadowTertiary: "none",
     controlOutline: "none",
     fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
@@ -36,6 +34,8 @@ const theme = {
     },
     Card: { headerBg: "#ffffff", boxShadowTertiary: "none" },
     Table: {
+      cellPaddingBlock: 8,
+      cellPaddingInline: 12,
       headerBg: "#fafafa",
       headerColor: "rgba(0, 0, 0, 0.88)",
       headerSortActiveBg: "#f0f0f0",

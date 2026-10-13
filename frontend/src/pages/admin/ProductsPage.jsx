@@ -123,6 +123,7 @@ export default function ProductsPage() {
         />
       </Space>
       <Table
+        bordered
         rowKey="id"
         loading={isLoading}
         columns={columns}

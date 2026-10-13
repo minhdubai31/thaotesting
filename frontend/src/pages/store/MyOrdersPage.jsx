@@ -27,6 +27,7 @@ export default function MyOrdersPage() {
   return (
     <Card title={<Typography.Title level={4} style={{ margin: 0 }}>My orders</Typography.Title>}>
       <Table
+        bordered
         rowKey="id"
         loading={isLoading}
         columns={columns}

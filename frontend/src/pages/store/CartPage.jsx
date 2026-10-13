@@ -69,7 +69,7 @@ export default function CartPage() {
     <Row gutter={[24, 24]}>
       <Col xs={24} lg={16}>
         <Card title={`Shopping cart (${cart.data.itemCount} items)`}>
-          <Table rowKey="productId" columns={columns} dataSource={cart.data.items} pagination={false} />
+          <Table bordered rowKey="productId" columns={columns} dataSource={cart.data.items} pagination={false} />
         </Card>
       </Col>
       <Col xs={24} lg={8}>

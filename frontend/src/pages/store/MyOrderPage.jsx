@@ -110,7 +110,7 @@ export default function MyOrderPage() {
       </Row>
 
       <Card title="Items">
-        <Table rowKey="productId" columns={columns} dataSource={order.items} pagination={false} />
+        <Table bordered rowKey="productId" columns={columns} dataSource={order.items} pagination={false} />
         <Descriptions column={1} size="small" style={{ marginTop: 16, maxWidth: 360, marginLeft: "auto" }}>
           <Descriptions.Item label="Subtotal">{vnd(order.subtotal)}</Descriptions.Item>
           {order.discountAmount > 0 && (
