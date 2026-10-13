@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, Input, Modal, Select, Space, Table, Typography, App } from "antd";
+import { App, Button, Card, Input, Modal, Select, Space, Table, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { api, toQuery } from "../../lib/api";
 import { NEXT_STATUSES, ORDER_STATUSES, STATUS_LABELS, dateText, vnd } from "../../lib/format";
@@ -9,7 +9,7 @@ import { useTableParams } from "../../lib/useTableParams";
 import StatusTag from "../../components/StatusTag";
 
 export default function OrdersPage() {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const table = useTableParams({ sort: "orderDate", order: "desc" });
@@ -34,12 +34,29 @@ export default function OrdersPage() {
     onError: (err) => message.error(err.message),
   });
 
+  // Shipping asks for a tracking number first; every other change needs confirmation.
   function handleStatusChange(order, status) {
     if (status === "shipped") {
       setShipping({ order, status, tracking: order.trackingNumber || "" });
       return;
     }
-    changeStatus.mutate({ id: order.id, status });
+
+    const label = STATUS_LABELS[status] || status;
+    const danger = status === "cancelled" || status === "refunded";
+
+    modal.confirm({
+      title: `Change order #${order.id.slice(0, 8)} to ${label}?`,
+      content:
+        status === "refunded"
+          ? "The order is refunded and its items return to stock."
+          : status === "cancelled"
+            ? "The order is cancelled and its items return to stock."
+            : `The order status will change from ${STATUS_LABELS[order.status]} to ${label}.`,
+      okText: `Yes, ${label.toLowerCase()}`,
+      okButtonProps: { danger },
+      cancelText: "Keep current",
+      onOk: () => changeStatus.mutateAsync({ id: order.id, status }).catch(() => {}),
+    });
   }
 
   const columns = [

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import PageTitle from "../../components/PageTitle";
 import { Button, Card, Form, Input, InputNumber, Select, Spin, App } from "antd";
 import { api } from "../../lib/api";
 import { useMasters } from "../../lib/useMasters";
@@ -26,7 +27,7 @@ export default function AdjustStockPage() {
   if (isLoading || !masters) return <Spin />;
 
   return (
-    <Card title="Adjust stock" style={{ maxWidth: 560 }}>
+    <Card title={<PageTitle back="/admin/inventory">Adjust stock</PageTitle>} style={{ maxWidth: 560 }}>
       <Form
         layout="vertical"
         initialValues={{ productId: params.get("productId") || undefined, type: "in", quantity: 1 }}

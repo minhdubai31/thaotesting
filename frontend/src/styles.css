@@ -1,4 +1,23 @@
 /* Only layout glue. Components are styled by Ant Design. */
+html, body, #root { margin: 0; padding: 0; min-height: 100%; }
+body { background: #fdf6f9; }
+
+.logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #db2777, #f472b6);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.brand-row { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
+.admin-sider { position: sticky; top: 0; height: 100vh; overflow: auto; }
+.admin-header { position: sticky; top: 0; z-index: 9; }
 .store-header {
   display: flex;
   align-items: center;
@@ -10,8 +29,8 @@
   top: 0;
   z-index: 10;
 }
-.brand { font-weight: 700; font-size: 18px; color: #0f766e; white-space: nowrap; }
-.brand:hover { color: #0b5f59; }
+.brand { font-weight: 700; font-size: 18px; color: #831843; white-space: nowrap; }
+.brand:hover { color: #db2777; }
 .store-menu { flex: 1; min-width: 0; border-bottom: none; }
 .store-search { width: 280px; }
 .store-content { padding: 24px; max-width: 1200px; width: 100%; margin: 0 auto; }
@@ -21,7 +40,7 @@
 .product-image { width: 100%; object-fit: contain; background: #fff; display: block; }
 .product-placeholder { width: 100%; display: grid; place-items: center; background: #f5f7fa; color: #bfbfbf; font-size: 36px; }
 .section-title { margin: 24px 0 12px; }
-.admin-brand { color: #fff; font-weight: 700; padding: 16px; font-size: 16px; white-space: nowrap; overflow: hidden; }
+.admin-brand { padding: 16px; white-space: nowrap; overflow: hidden; }
 .admin-header { background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #f0f0f0; }
 .admin-content { padding: 24px; }
 .page-card { background: #fff; border-radius: 12px; padding: 24px; }
@@ -32,3 +51,14 @@
   .store-header { flex-wrap: wrap; height: auto; padding: 12px; }
   .store-content { padding: 12px; }
 }
+
+/* Tables: clear outline and row striping so rows are easy to follow. */
+.ant-table-wrapper .ant-table {
+  border: 1px solid #f3c6dd;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.ant-table-wrapper .ant-table-tbody > tr > td { border-bottom: 1px solid #fbe3ef; }
+.ant-table-wrapper .ant-table-tbody > tr:nth-child(even) > td { background: #fffafd; }
+.ant-table-wrapper .ant-table-tbody > tr:hover > td { background: #fdf2f8 !important; }
+.ant-table-wrapper .ant-table-thead > tr > th { font-weight: 600; }

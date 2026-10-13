@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
+import PageTitle from "../../components/PageTitle";
 import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Space, Spin, Switch, Popconfirm, Image, App } from "antd";
 import { api } from "../../lib/api";
 import { useMasters } from "../../lib/useMasters";
@@ -81,7 +82,7 @@ export default function ProductFormPage() {
   }
 
   return (
-    <Card title={isNew ? "New product" : product.data.name}>
+    <Card title={<PageTitle back="/admin/products">{isNew ? "New product" : product.data.name}</PageTitle>}>
       <Row gutter={[24, 24]}>
         <Col xs={24} md={8}>
           <ProductImage src={imageUrl} height={260} preview />

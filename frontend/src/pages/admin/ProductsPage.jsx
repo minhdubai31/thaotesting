@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, Card, Input, Select, Space, Table, Tag, Typography } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { App, Button, Card, Input, Popconfirm, Select, Space, Table, Tag, Typography } from "antd";
+import { EditOutlined, PlusOutlined, StopOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { api, toQuery } from "../../lib/api";
 import { vnd } from "../../lib/format";
 import { useMasters } from "../../lib/useMasters";
@@ -10,8 +11,24 @@ import ProductImage from "../../components/ProductImage";
 
 export default function ProductsPage() {
   const navigate = useNavigate();
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const table = useTableParams({ sort: "createdAt", order: "desc" });
   const { data: masters } = useMasters();
+
+  // Deactivate hides a product from the storefront; activate puts it back.
+  const setActive = useMutation({
+    mutationFn: ({ id, active }) =>
+      active
+        ? api(`/api/products/${id}`, { method: "PATCH", body: { isActive: true } })
+        : api(`/api/products/${id}`, { method: "DELETE" }),
+    onSuccess: (_data, { active }) => {
+      message.success(active ? "Product activated." : "Product deactivated.");
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["masters"] });
+    },
+    onError: (err) => message.error(err.message),
+  });
 
   const query = { page: table.page, pageSize: table.pageSize, sort: table.sort, order: table.order, ...table.filters };
   const { data, isLoading } = useQuery({
@@ -39,6 +56,35 @@ export default function ProductsPage() {
       render: (value, p) => <Typography.Text type={value <= p.reorderLevel ? "danger" : undefined}>{value}</Typography.Text>,
     },
     { title: "Status", dataIndex: "isActive", render: (active) => (active ? <Tag color="green">Active</Tag> : <Tag>Inactive</Tag>) },
+    {
+      title: "Actions",
+      key: "actions",
+      width: 260,
+      render: (_, p) => (
+        <Space>
+          <Button size="small" icon={<EditOutlined />} onClick={() => navigate(`/admin/products/${p.id}`)}>
+            Edit
+          </Button>
+          {p.isActive ? (
+            <Popconfirm
+              title="Deactivate this product?"
+              description="It will be hidden from the storefront."
+              okText="Deactivate"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => setActive.mutate({ id: p.id, active: false })}
+            >
+              <Button size="small" danger icon={<StopOutlined />} loading={setActive.isPending}>
+                Deactivate
+              </Button>
+            </Popconfirm>
+          ) : (
+            <Button size="small" icon={<CheckCircleOutlined />} loading={setActive.isPending} onClick={() => setActive.mutate({ id: p.id, active: true })}>
+              Activate
+            </Button>
+          )}
+        </Space>
+      ),
+    },
   ];
 
   return (

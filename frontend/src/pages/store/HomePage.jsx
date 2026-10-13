@@ -17,12 +17,12 @@ export default function HomePage() {
 
   return (
     <Space direction="vertical" size={32} style={{ width: "100%" }}>
-      <Card style={{ background: "linear-gradient(120deg, #0f766e 0%, #14b8a6 100%)", border: "none" }}>
+      <Card style={{ background: "linear-gradient(120deg, #db2777 0%, #f472b6 100%)", border: "none" }}>
         <Space direction="vertical" size={12}>
           <Typography.Title level={2} style={{ color: "#fff", margin: 0 }}>
             Phones and accessories, delivered across Vietnam
           </Typography.Title>
-          <Typography.Paragraph style={{ color: "#e6fffb", fontSize: 16, margin: 0 }}>
+          <Typography.Paragraph style={{ color: "#fce7f3", fontSize: 16, margin: 0 }}>
             Genuine models from Apple, Samsung, Xiaomi and OPPO, with cash-on-delivery and coupons.
           </Typography.Paragraph>
           <Link to="/shop">

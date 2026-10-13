@@ -50,8 +50,9 @@ export default function StoreLayout() {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Header className="store-header">
-        <Link to="/" className="brand">
-          Cellphone Store
+        <Link to="/" className="brand brand-row">
+          <span className="logo">T</span>
+          Thao Store
         </Link>
         <Menu mode="horizontal" selectedKeys={selected} items={menuItems} className="store-menu" disabledOverflow />
         <Input.Search
@@ -80,7 +81,7 @@ export default function StoreLayout() {
 
       <Footer className="store-footer">
         <Typography.Text type="secondary">
-          Cellphone Store · Demo storefront. Prices are sample data.
+          Thao Store · Demo storefront. Prices are sample data.
         </Typography.Text>
       </Footer>
     </Layout>

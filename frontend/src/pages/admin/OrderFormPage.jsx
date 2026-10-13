@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import PageTitle from "../../components/PageTitle";
 import { Button, Card, Form, InputNumber, Select, Space, Spin, App } from "antd";
 import { api } from "../../lib/api";
 import { useMasters } from "../../lib/useMasters";
@@ -41,7 +42,7 @@ export default function OrderFormPage() {
   }
 
   return (
-    <Card title="New order">
+    <Card title={<PageTitle back="/admin/orders">New order</PageTitle>}>
       <Form form={form} layout="vertical" onFinish={handleFinish} initialValues={{ freight: 30000, items: [{ quantity: 1 }] }} style={{ maxWidth: 720 }}>
         <Form.Item name="customerId" label="Customer">
           <Select allowClear placeholder="Walk-in" options={masters.customers.map((c) => ({ value: c.id, label: c.name }))} />

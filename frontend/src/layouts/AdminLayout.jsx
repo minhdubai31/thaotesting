@@ -54,8 +54,11 @@ export default function AdminLayout() {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="dark" width={220}>
-        <div className="admin-brand">{collapsed ? "CS" : "Cellphone Store"}</div>
+      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="dark" width={220} className="admin-sider">
+        <div className="admin-brand brand-row">
+          <span className="logo">T</span>
+          {!collapsed && <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Thao Store</span>}
+        </div>
         <Menu theme="dark" mode="inline" selectedKeys={[activeKey(location.pathname)]} items={navItems} />
       </Sider>
       <Layout>

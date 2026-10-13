@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import PageTitle from "../../components/PageTitle";
 import { Button, Card, Form, Input, App } from "antd";
 import { api } from "../../lib/api";
 
@@ -20,7 +21,7 @@ export default function CustomerFormPage() {
   });
 
   return (
-    <Card title="New customer" style={{ maxWidth: 560 }}>
+    <Card title={<PageTitle back="/admin/customers">New customer</PageTitle>} style={{ maxWidth: 560 }}>
       <Form layout="vertical" onFinish={(values) => create.mutate(values)}>
         <Form.Item name="name" label="Name" rules={[{ required: true }]}>
           <Input />

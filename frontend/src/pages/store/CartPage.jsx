@@ -87,7 +87,7 @@ export default function CartPage() {
               <Typography.Title level={5} style={{ margin: 0 }}>
                 Total
               </Typography.Title>
-              <Typography.Title level={5} style={{ margin: 0, color: "#0f766e" }}>
+              <Typography.Title level={5} style={{ margin: 0, color: "#db2777" }}>
                 {vnd(cart.data.total)}
               </Typography.Title>
             </Row>
