@@ -1,5 +1,6 @@
 const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
+const { buildMeta, parsePagination, parseSort, readSearch } = require("../utils/pagination");
 const {
   addValidationError,
   hasValidationErrors,
@@ -160,14 +161,37 @@ const orderInclude = {
 
 async function listOrders(req, res, next) {
   try {
-    const orders = await prisma.order.findMany({
-      orderBy: { createdAt: "desc" },
-      include: orderInclude
-    });
+    const { page, pageSize, skip, take } = parsePagination(req.query);
+    const q = readSearch(req.query.q);
+    const status = String(req.query.status || "").trim().toLowerCase();
+    const where = {};
+
+    if (allowedStatuses.includes(status)) {
+      where.status = status;
+    }
+
+    if (q) {
+      where.OR = [
+        { shipName: { contains: q, mode: "insensitive" } },
+        { customer: { name: { contains: q, mode: "insensitive" } } },
+        { shipCity: { contains: q, mode: "insensitive" } }
+      ];
+    }
+
+    const [orders, total] = await prisma.$transaction([
+      prisma.order.findMany({
+        where,
+        skip,
+        take,
+        orderBy: parseSort(req.query, ["orderDate", "totalAmount", "status"], "orderDate"),
+        include: orderInclude
+      }),
+      prisma.order.count({ where })
+    ]);
 
     return sendSuccess(res, {
       message: "Orders fetched",
-      data: { orders: orders.map(serializeOrder) }
+      data: { orders: orders.map(serializeOrder), meta: buildMeta({ page, pageSize, total }) }
     });
   } catch (error) {
     return next(error);

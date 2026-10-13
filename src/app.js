@@ -61,7 +61,17 @@ app.get("/api-docs/", (req, res) => {
 </html>`);
 });
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "img-src": ["'self'", "data:", "https:"],
+        "connect-src": ["'self'", "https:", "http://localhost:*", "http://127.0.0.1:*"]
+      }
+    }
+  })
+);
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
@@ -81,8 +91,17 @@ app.use("/api", customerRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", userRoutes);
 
-// Admin frontend (plain HTML/JS in frontend/) is served from the same origin.
-app.use(express.static(path.join(__dirname, "../frontend")));
+// React admin app (built to frontend/dist) is served from the same origin.
+const frontendDist = path.join(__dirname, "../frontend/dist");
+app.use(express.static(frontendDist));
+
+// Single-page app: any other GET (for example /products/123 after a reload) returns index.html,
+// so the React router can render the page. /api, /api-docs and /health are handled above.
+app.get(/^\/(?!api|api-docs|health).*/, (req, res, next) => {
+  res.sendFile(path.join(frontendDist, "index.html"), (error) => {
+    if (error) next();
+  });
+});
 
 app.use((req, res) => {
   sendError(res, {

@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   createProduct,
+  getProduct,
   deleteProduct,
   listProducts,
   updateProduct
@@ -16,6 +17,13 @@ router.get(
   authenticate,
   authorizePermission("products:read"),
   listProducts
+);
+router.get(
+  "/products/:id",
+  authenticate,
+  authorizePermission("products:read"),
+  validateUuidParam("id"),
+  getProduct
 );
 router.post(
   "/products",

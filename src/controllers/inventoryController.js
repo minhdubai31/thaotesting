@@ -1,5 +1,6 @@
 const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
+const { buildMeta, parsePagination, parseSort, readSearch } = require("../utils/pagination");
 const {
   addValidationError,
   hasValidationErrors,
@@ -14,21 +15,39 @@ function parseQuantity(value) {
 
 async function listInventory(req, res, next) {
   try {
-    const inventory = await prisma.inventoryItem.findMany({
-      orderBy: { updatedAt: "desc" },
-      include: {
-        product: {
-          include: {
-            categoryRef: true,
-            supplier: true
+    const { page, pageSize, skip, take } = parsePagination(req.query);
+    const q = readSearch(req.query.q);
+    const where = q
+      ? {
+          product: {
+            OR: ["name", "sku", "brand"].map((field) => ({
+              [field]: { contains: q, mode: "insensitive" }
+            }))
           }
         }
-      }
-    });
+      : {};
+
+    const [inventory, total] = await prisma.$transaction([
+      prisma.inventoryItem.findMany({
+        where,
+        skip,
+        take,
+        orderBy: parseSort(req.query, ["quantity", "updatedAt"], "updatedAt"),
+        include: {
+          product: {
+            include: {
+              categoryRef: true,
+              supplier: true
+            }
+          }
+        }
+      }),
+      prisma.inventoryItem.count({ where })
+    ]);
 
     return sendSuccess(res, {
       message: "Inventory fetched",
-      data: { inventory }
+      data: { inventory, meta: buildMeta({ page, pageSize, total }) }
     });
   } catch (error) {
     return next(error);

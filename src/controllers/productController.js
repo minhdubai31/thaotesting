@@ -1,5 +1,6 @@
 const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
+const { buildMeta, parsePagination, parseSort, readSearch } = require("../utils/pagination");
 const {
   addValidationError,
   hasValidationErrors,
@@ -66,14 +67,63 @@ const productInclude = {
 
 async function listProducts(req, res, next) {
   try {
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: "desc" },
-      include: productInclude
-    });
+    const { page, pageSize, skip, take } = parsePagination(req.query);
+    const q = readSearch(req.query.q);
+    const categoryId = readOptionalId(req.query.categoryId);
+    const status = String(req.query.status || "all").toLowerCase();
+    const where = {};
+
+    if (q) {
+      where.OR = ["name", "sku", "brand", "model"].map((field) => ({
+        [field]: { contains: q, mode: "insensitive" }
+      }));
+    }
+
+    if (categoryId && isValidUuid(categoryId)) {
+      where.categoryId = categoryId;
+    }
+
+    if (status === "active") where.isActive = true;
+    if (status === "inactive") where.isActive = false;
+
+    const [products, total] = await prisma.$transaction([
+      prisma.product.findMany({
+        where,
+        skip,
+        take,
+        orderBy: parseSort(req.query, ["name", "price", "unitsInStock", "createdAt", "sku"], "createdAt"),
+        include: productInclude
+      }),
+      prisma.product.count({ where })
+    ]);
 
     return sendSuccess(res, {
       message: "Products fetched",
-      data: { products }
+      data: { products, meta: buildMeta({ page, pageSize, total }) }
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function getProduct(req, res, next) {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      include: productInclude
+    });
+
+    if (!product) {
+      return sendError(res, {
+        statusCode: 404,
+        message: "Product not found",
+        errors: { product: ["Product not found."] }
+      });
+    }
+
+    return sendSuccess(res, {
+      message: "Product fetched",
+      data: { product }
     });
   } catch (error) {
     return next(error);
@@ -203,6 +253,8 @@ async function createProduct(req, res, next) {
         categoryId,
         supplierId,
         quantityPerUnit: readOptionalString(req.body.quantityPerUnit),
+        description: readOptionalString(req.body.description),
+        imageUrl: readOptionalString(req.body.imageUrl),
         price,
         unitsInStock: quantity,
         unitsOnOrder,
@@ -324,6 +376,12 @@ async function updateProduct(req, res, next) {
         addValidationError(errors, "discontinued", "Discontinued must be a boolean.");
       } else {
         data.discontinued = discontinued;
+      }
+    }
+
+    for (const field of ["description", "imageUrl"]) {
+      if (req.body[field] !== undefined) {
+        data[field] = readOptionalString(req.body[field]);
       }
     }
 
@@ -484,6 +542,7 @@ async function deleteProduct(req, res, next) {
 }
 
 module.exports = {
+  getProduct,
   listProducts,
   createProduct,
   updateProduct,

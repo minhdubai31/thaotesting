@@ -1,5 +1,34 @@
 const bearerAuth = [{ bearerAuth: [] }];
 
+const listKeys = {
+	Product: 'products',
+	Category: 'categories',
+	Supplier: 'suppliers',
+	DeliveryCompany: 'deliveryCompanies',
+	Employee: 'employees',
+	InventoryItem: 'inventory',
+	Customer: 'customers',
+	Order: 'orders',
+};
+
+const pageParams = [
+	{ name: 'page', in: 'query', schema: { type: 'integer', minimum: 1, default: 1 } },
+	{
+		name: 'pageSize',
+		in: 'query',
+		schema: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+	},
+];
+
+function queryParam(name, description, schema = { type: 'string' }) {
+	return { name, in: 'query', description, schema };
+}
+
+const sortParams = (fields) => [
+	queryParam('sort', `Sort field. One of: ${fields.join(', ')}.`),
+	queryParam('order', 'Sort direction.', { type: 'string', enum: ['asc', 'desc'] }),
+];
+
 const successEnvelope = (dataRef) => ({
 	type: 'object',
 	properties: {
@@ -271,7 +300,18 @@ const openApiSpec = {
 			),
 		},
 		'/api/products': {
-			get: protectedList('Products', 'List products', 'products:read', 'Product'),
+			get: protectedList('Products', 'List products (paged)', 'products:read', 'Product', {
+				paged: true,
+				params: [
+					queryParam('q', 'Search name, SKU, brand or model.'),
+					queryParam('categoryId', 'Filter by category ID.', { type: 'string', format: 'uuid' }),
+					queryParam('status', 'Filter by active state.', {
+						type: 'string',
+						enum: ['all', 'active', 'inactive'],
+					}),
+					...sortParams(['name', 'price', 'unitsInStock', 'createdAt', 'sku']),
+				],
+			}),
 			post: protectedCreate(
 				'Products',
 				'Create a product',
@@ -281,6 +321,18 @@ const openApiSpec = {
 			),
 		},
 		'/api/products/{id}': {
+			get: {
+				tags: ['Products'],
+				summary: 'Get one product',
+				description: 'Requires products:read.',
+				security: bearerAuth,
+				parameters: [uuidParam],
+				responses: {
+					200: entityResponse('Product'),
+					...authResponses,
+					404: { $ref: '#/components/responses/NotFound' },
+				},
+			},
 			patch: protectedPatch(
 				'Products',
 				'Update a product',
@@ -302,7 +354,13 @@ const openApiSpec = {
 			},
 		},
 		'/api/inventory': {
-			get: protectedList('Inventory', 'List inventory', 'inventory:read', 'InventoryItem'),
+			get: protectedList('Inventory', 'List inventory (paged)', 'inventory:read', 'InventoryItem', {
+				paged: true,
+				params: [
+					queryParam('q', 'Search product name, SKU or brand.'),
+					...sortParams(['quantity', 'updatedAt']),
+				],
+			}),
 		},
 		'/api/inventory/adjustments': {
 			post: protectedCreate(
@@ -314,7 +372,13 @@ const openApiSpec = {
 			),
 		},
 		'/api/customers': {
-			get: protectedList('Customers', 'List customers', 'customers:read', 'Customer'),
+			get: protectedList('Customers', 'List customers (paged)', 'customers:read', 'Customer', {
+				paged: true,
+				params: [
+					queryParam('q', 'Search name, phone or email.'),
+					...sortParams(['name', 'createdAt']),
+				],
+			}),
 			post: protectedCreate(
 				'Customers',
 				'Create a customer',
@@ -333,7 +397,17 @@ const openApiSpec = {
 			),
 		},
 		'/api/orders': {
-			get: protectedList('Orders', 'List orders', 'orders:read', 'Order'),
+			get: protectedList('Orders', 'List orders (paged)', 'orders:read', 'Order', {
+				paged: true,
+				params: [
+					queryParam('q', 'Search customer name, ship name or city.'),
+					queryParam('status', 'Filter by status.', {
+						type: 'string',
+						enum: ['pending', 'completed', 'cancelled'],
+					}),
+					...sortParams(['orderDate', 'totalAmount', 'status']),
+				],
+			}),
 			post: protectedCreate(
 				'Orders',
 				'Create an order',
@@ -474,6 +548,15 @@ const openApiSpec = {
 					},
 				},
 			},
+			PageMeta: {
+				type: 'object',
+				properties: {
+					page: { type: 'integer', example: 1 },
+					pageSize: { type: 'integer', example: 10 },
+					total: { type: 'integer', example: 32 },
+					totalPages: { type: 'integer', example: 4 },
+				},
+			},
 			UserRolesInput: {
 				type: 'object',
 				required: ['roles'],
@@ -601,14 +684,17 @@ const openApiSpec = {
 	},
 };
 
-function protectedList(tag, summary, permission, schemaName) {
+
+// Lists that page (products, orders, customers, inventory) take these query params.
+function protectedList(tag, summary, permission, schemaName, { params = [], paged = false } = {}) {
 	return {
 		tags: [tag],
 		summary,
 		description: `Requires ${permission}.`,
 		security: bearerAuth,
+		parameters: paged ? [...pageParams, ...params] : [],
 		responses: {
-			200: listResponse(schemaName),
+			200: listResponse(schemaName, paged),
 			...authResponses,
 		},
 	};
@@ -660,15 +746,27 @@ function protectedPatch(tag, summary, permission, inputSchemaName, outputSchemaN
 	};
 }
 
-function listResponse(schemaName) {
+function listResponse(schemaName, paged = false) {
+	const key = listKeys[schemaName];
+	const data = {
+		type: 'object',
+		properties: {
+			[key]: {
+				type: 'array',
+				items: { $ref: `#/components/schemas/${schemaName}` },
+			},
+		},
+	};
+
+	if (paged) {
+		data.properties.meta = { $ref: '#/components/schemas/PageMeta' };
+	}
+
 	return {
 		description: 'List response',
 		content: {
 			'application/json': {
-				schema: successEnvelope({
-					type: 'array',
-					items: { $ref: `#/components/schemas/${schemaName}` },
-				}),
+				schema: successEnvelope(data),
 			},
 		},
 	};
@@ -752,6 +850,8 @@ function productFields() {
 		categoryId: { type: 'string', format: 'uuid', nullable: true },
 		supplierId: { type: 'string', format: 'uuid', nullable: true },
 		quantityPerUnit: { type: 'string', nullable: true, example: '1 phone / box' },
+		description: { type: 'string', nullable: true, example: 'Flagship smartphone with a 6.3-inch display.' },
+		imageUrl: { type: 'string', format: 'uri', nullable: true, example: 'https://upload.wikimedia.org/example.jpg' },
 		price: { type: 'number', example: 799 },
 		unitPrice: { type: 'number', example: 799 },
 		unitsInStock: { type: 'integer', minimum: 0, example: 5 },

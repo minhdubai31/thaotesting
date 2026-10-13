@@ -1,0 +1,75 @@
+{
+  "APL-IP17PM-256": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/IPhone_17_Pro_Vector.svg/330px-IPhone_17_Pro_Vector.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The iPhone 17 Pro and iPhone 17 Pro Max are smartphones developed and marketed by Apple. Alongside the iPhone 17 and iPhone Air, they form the nineteenth generation of the iPhone, succeeding the iPhone 16 Pro and iPhone 16 Pro Max. They were unveiled during the Apple Event at Apple Park in Cupertino, California, on September 9, 2025, and released on September 19, 2025. They were discontinued on...",
+    "source": "https://en.wikipedia.org/wiki/IPhone_17_Pro"
+  },
+  "APL-IP17-256": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e6/IPhone_17_Vector.svg/330px-IPhone_17_Vector.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The iPhone 17 is a smartphone developed and marketed by Apple that is part of the nineteenth generation of the iPhone. Succeeding the iPhone 16, the device was announced alongside the higher-priced, refreshed iPhone 17 Pro and 17 Pro Max and the new iPhone Air during an Apple Event at Apple Park in Cupertino, California, on September 9, 2025.",
+    "source": "https://en.wikipedia.org/wiki/IPhone_17"
+  },
+  "APL-IP16-128": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/IPhone_16_Vector.svg/330px-IPhone_16_Vector.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The iPhone 16 and iPhone 16 Plus are smartphones developed and marketed by Apple. They are the eighteenth-generation iPhones, succeeding the iPhone 15 and iPhone 15 Plus. The devices were announced alongside the higher-priced iPhone 16 Pro and 16 Pro Max during the Apple Event at Apple Park in Cupertino, California, on September 9, 2024, and released on September 20.",
+    "source": "https://en.wikipedia.org/wiki/IPhone_16"
+  },
+  "APL-IPADA16-128": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/IPad_10.png/330px-IPad_10.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The iPad  is a tablet computer developed and marketed by Apple as the successor to the ninth-generation iPad. It was announced on October 18, 2022, and was released on October 26, 2022.",
+    "source": "https://en.wikipedia.org/wiki/IPad_(10th_generation)"
+  },
+  "APL-AW11-42": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Apple_Watch_Series_10.jpg/330px-Apple_Watch_Series_10.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Apple Watch is a line of smartwatches developed and marketed by Apple. It has fitness tracking, health-oriented capabilities, and wireless telecommunication, integrating with watchOS and other Apple products and services. The first Apple Watch was released in April 2015, and quickly became the world's best-selling wearable device. 4.2 million were sold in the second quarter of fiscal 2015,...",
+    "source": "https://en.wikipedia.org/wiki/Apple_Watch"
+  },
+  "APL-AP4": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/14/AirPods_4_ANC_and_case.jpg/330px-AirPods_4_ANC_and_case.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "AirPods are wireless Bluetooth earbuds designed by Apple. They were first announced on September 7, 2016, alongside the iPhone 7, and the 2016 MacBook Pro. Within two years, they became Apple's most popular accessory. AirPods are Apple's entry-level wireless headphones, sold alongside the AirPods Pro and AirPods Max.",
+    "source": "https://en.wikipedia.org/wiki/AirPods"
+  },
+  "SAM-S26-256": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9f/20260227_%EC%82%BC%EC%84%B1_%EA%B0%A4%EB%9F%AD%EC%8B%9C_S26_%EC%8B%9C%EB%A6%AC%EC%A6%88.jpg/330px-20260227_%EC%82%BC%EC%84%B1_%EA%B0%A4%EB%9F%AD%EC%8B%9C_S26_%EC%8B%9C%EB%A6%AC%EC%A6%88.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Samsung Galaxy S26 is a series of flagship Android-based smartphones manufactured, developed, and marketed by Samsung Electronics as part of its flagship Galaxy S series. They collectively serve as the successor to the Galaxy S25 series released in 2025. The S26, S26+, and S26 Ultra were announced on February 25, 2026, at Samsung's Galaxy Unpacked event in San Francisco, alongside the Galax...",
+    "source": "https://en.wikipedia.org/wiki/Samsung_Galaxy_S26"
+  },
+  "SAM-A57-256": null,
+  "SAM-A55-128": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Samsung_Galaxy_A55_5G_2024.jpg/330px-Samsung_Galaxy_A55_5G_2024.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Samsung Galaxy A55 5G is a mid-range Android-based smartphone developed and manufactured by Samsung Electronics as a part of its Galaxy \nA series. It was announced on March 11, 2024 and was released four days later, alongside the Galaxy A35 5G.",
+    "source": "https://en.wikipedia.org/wiki/Samsung_Galaxy_A55_5G"
+  },
+  "SAM-A16-128": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Samsung_Galaxy_A16_5G_2025.jpg/330px-Samsung_Galaxy_A16_5G_2025.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Samsung Galaxy A16 and Galaxy A16 5G are Android mid-range smartphones developed and marketed by Samsung Electronics in 2024. The 5G model was first announced on October 7, 2024, which was followed by the LTE model on October 17, 2024. It is the first A1x series device to receive six OS upgrades in a span of six years, eventually ceasing to receive updates in October 2030. The phone is part...",
+    "source": "https://en.wikipedia.org/wiki/Samsung_Galaxy_A16"
+  },
+  "SAM-TABS10FE": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Tab_S10_Ultra_frontal_image.png/330px-Tab_S10_Ultra_frontal_image.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Samsung Galaxy Tab S10 is a series of Android-based tablets developed, manufactured and marketed by Samsung Electronics unveiled via press release on September 27, 2024 alongside the Galaxy S24 FE as the successor to the Galaxy Tab S9 series. The tablets were released on October 3, 2024 with Plus and Ultra models.",
+    "source": "https://en.wikipedia.org/wiki/Samsung_Galaxy_Tab_S10"
+  },
+  "SAM-BUDS3": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ce/Samsung_Galaxy_Z_Flip_6_and_Buds3.jpg/330px-Samsung_Galaxy_Z_Flip_6_and_Buds3.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Samsung Galaxy Buds 3 is a series of wireless Bluetooth earbuds manufactured, developed and designed by Samsung Electronics, and the 3rd generation of the Galaxy Buds series. It was announced on July 10, 2024, at the Galaxy Unpacked event alongside the Galaxy Z Fold 6, the Galaxy Z Flip 6, the Galaxy Watch 7, the Galaxy Watch Ultra and the Galaxy Ring, and released on July 24, 2024, as the...",
+    "source": "https://en.wikipedia.org/wiki/Samsung_Galaxy_Buds_3"
+  },
+  "SAM-WATCH8": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Samsung_Galaxy_Watch.jpg/330px-Samsung_Galaxy_Watch.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Samsung Galaxy Watch is a smartwatch developed by Samsung Electronics. It was announced on August 9, 2018. The Galaxy Watch was scheduled for availability in the United States starting on August 24, 2018, at select carriers and retail locations in South Korea on August 31, 2018, and in additional select markets on September 14, 2018.",
+    "source": "https://en.wikipedia.org/wiki/Samsung_Galaxy_Watch"
+  },
+  "XIA-17T": {
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Xiaomi_17T_series.jpg/330px-Xiaomi_17T_series.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "description": "The Xiaomi 17T and Xiaomi 17T Pro are Android-based upper mid-range and flagship smartphones manufactured, designed, and marketed by Xiaomi, serving part of the \"T\" series. The 17T series was released on May 28, 2026. It was later released on May 29, 2026, for South Korean and Philippine markets. In China, the phone was released on June 8.",
+    "source": "https://en.wikipedia.org/wiki/Xiaomi_17T"
+  },
+  "XIA-RN14-256": null,
+  "XIA-R14C-128": null,
+  "XIA-BAND9": null,
+  "OPP-FX9S-256": null,
+  "OPP-FX9U-512": null,
+  "SNY-WH1000XM5": null,
+  "JBL-GO4": null
+}

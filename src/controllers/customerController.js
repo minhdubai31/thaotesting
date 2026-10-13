@@ -1,5 +1,6 @@
 const { prisma } = require("../config/prisma");
 const { sendError, sendSuccess } = require("../utils/response");
+const { buildMeta, parsePagination, parseSort, readSearch } = require("../utils/pagination");
 const {
   addValidationError,
   hasValidationErrors,
@@ -18,13 +19,29 @@ function readOptionalString(value) {
 
 async function listCustomers(req, res, next) {
   try {
-    const customers = await prisma.customer.findMany({
-      orderBy: { createdAt: "desc" }
-    });
+    const { page, pageSize, skip, take } = parsePagination(req.query);
+    const q = readSearch(req.query.q);
+    const where = q
+      ? {
+          OR: ["name", "phone", "email"].map((field) => ({
+            [field]: { contains: q, mode: "insensitive" }
+          }))
+        }
+      : {};
+
+    const [customers, total] = await prisma.$transaction([
+      prisma.customer.findMany({
+        where,
+        skip,
+        take,
+        orderBy: parseSort(req.query, ["name", "createdAt"], "createdAt"),
+      }),
+      prisma.customer.count({ where })
+    ]);
 
     return sendSuccess(res, {
       message: "Customers fetched",
-      data: { customers }
+      data: { customers, meta: buildMeta({ page, pageSize, total }) }
     });
   } catch (error) {
     return next(error);
