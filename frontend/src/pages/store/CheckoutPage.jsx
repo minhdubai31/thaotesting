@@ -37,7 +37,8 @@ export default function CheckoutPage() {
   });
 
   const placeOrder = useMutation({
-    mutationFn: () => api("/api/checkout", { method: "POST", body: { addressId, paymentMethod, couponCode: couponCode || undefined } }),
+    mutationFn: (selectedAddressId) =>
+      api("/api/checkout", { method: "POST", body: { addressId: selectedAddressId, paymentMethod, couponCode: couponCode || undefined } }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       message.success(t("checkout.orderPlaced"));
@@ -58,7 +59,8 @@ export default function CheckoutPage() {
     );
   }
 
-  const chosen = addresses.data?.find((a) => a.id === (addressId || addresses.data?.find((x) => x.isDefault)?.id));
+  // The address shown as selected is the one the order is placed with (the default when none was picked).
+  const chosen = addresses.data?.find((a) => a.id === addressId) || addresses.data?.find((a) => a.isDefault);
   const selectedId = chosen?.id;
 
   return (
@@ -176,7 +178,7 @@ export default function CheckoutPage() {
             </Typography.Title>
           </Row>
           {!selectedId && <Alert type="info" showIcon message={t("checkout.chooseAddress")} style={{ marginBottom: 12 }} />}
-          <Button type="primary" size="large" block disabled={!selectedId || cart.data.items.length === 0} loading={placeOrder.isPending} onClick={() => placeOrder.mutate()}>
+          <Button type="primary" size="large" block disabled={!selectedId || cart.data.items.length === 0} loading={placeOrder.isPending} onClick={() => placeOrder.mutate(selectedId)}>
             {t("checkout.placeOrder")}
           </Button>
         </Card>
