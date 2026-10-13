@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card, Table, Typography } from "antd";
 import { api } from "../../lib/api";
 import { dateText, vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 import StatusTag from "../../components/StatusTag";
 import { useTableParams } from "../../lib/useTableParams";
 
 export default function MyOrdersPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const table = useTableParams({ pageSize: 10 });
 
@@ -17,15 +19,15 @@ export default function MyOrdersPage() {
   });
 
   const columns = [
-    { title: "Order", dataIndex: "id", render: (id) => <Link to={`/orders/${id}`}>#{id.slice(0, 8)}</Link> },
-    { title: "Date", dataIndex: "orderDate", render: dateText },
-    { title: "Items", dataIndex: "items", render: (items) => items.reduce((sum, item) => sum + item.quantity, 0) },
-    { title: "Total", dataIndex: "total", align: "right", render: vnd },
-    { title: "Status", dataIndex: "status", render: (status) => <StatusTag status={status} /> },
+    { title: t("orders.order"), dataIndex: "id", render: (id) => <Link to={`/orders/${id}`}>#{id.slice(0, 8)}</Link> },
+    { title: t("orders.date"), dataIndex: "orderDate", render: dateText },
+    { title: t("orders.items"), dataIndex: "items", render: (items) => items.reduce((sum, item) => sum + item.quantity, 0) },
+    { title: t("orders.total"), dataIndex: "total", align: "right", render: vnd },
+    { title: t("orders.status"), dataIndex: "status", render: (status) => <StatusTag status={status} /> },
   ];
 
   return (
-    <Card title={<Typography.Title level={4} style={{ margin: 0 }}>My orders</Typography.Title>}>
+    <Card title={<Typography.Title level={4} style={{ margin: 0 }}>{t("nav.myOrders")}</Typography.Title>}>
       <Table
         bordered
         rowKey="id"

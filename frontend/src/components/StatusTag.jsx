@@ -1,6 +1,8 @@
 import { Tag } from "antd";
-import { STATUS_COLORS, STATUS_LABELS } from "../lib/format";
+import { STATUS_COLORS, statusLabel } from "../lib/format";
+import { useI18n } from "../i18n";
 
 export default function StatusTag({ status }) {
-  return <Tag color={STATUS_COLORS[status]}>{STATUS_LABELS[status] || status}</Tag>;
+  useI18n();
+  return <Tag color={STATUS_COLORS[status]}>{statusLabel(status)}</Tag>;
 }

@@ -5,8 +5,10 @@ import { Button, Card, Form, InputNumber, Select, Space, Spin, App } from "antd"
 import { api } from "../../lib/api";
 import { useMasters } from "../../lib/useMasters";
 import { vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 
 export default function OrderFormPage() {
+  const { t } = useI18n();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -16,7 +18,7 @@ export default function OrderFormPage() {
   const create = useMutation({
     mutationFn: (body) => api("/api/orders", { method: "POST", body }),
     onSuccess: () => {
-      message.success("Order created. Stock was reduced.");
+      message.success(t("orderForm.created"));
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["masters"] });
@@ -30,7 +32,7 @@ export default function OrderFormPage() {
   function handleFinish(values) {
     const items = (values.items || []).filter((line) => line?.productId);
     if (!items.length) {
-      message.error("Add at least one product.");
+      message.error(t("orderForm.addOne"));
       return;
     }
     create.mutate({
@@ -42,15 +44,15 @@ export default function OrderFormPage() {
   }
 
   return (
-    <Card title={<PageTitle back="/admin/orders">New order</PageTitle>}>
+    <Card title={<PageTitle back="/admin/orders">{t("admin.orders.new")}</PageTitle>}>
       <Form form={form} layout="vertical" onFinish={handleFinish} initialValues={{ freight: 30000, items: [{ quantity: 1 }] }} style={{ maxWidth: 720 }}>
-        <Form.Item name="customerId" label="Customer">
-          <Select allowClear placeholder="Walk-in" options={masters.customers.map((c) => ({ value: c.id, label: c.name }))} />
+        <Form.Item name="customerId" label={t("admin.orders.customer")}>
+          <Select allowClear placeholder={t("admin.orders.walkIn")} options={masters.customers.map((c) => ({ value: c.id, label: c.name }))} />
         </Form.Item>
-        <Form.Item name="deliveryCompanyId" label="Delivery company">
-          <Select allowClear placeholder="None" options={masters.deliveries.map((d) => ({ value: d.id, label: d.companyName }))} />
+        <Form.Item name="deliveryCompanyId" label={t("orderForm.deliveryCompany")}>
+          <Select allowClear placeholder={t("orderForm.none")} options={masters.deliveries.map((d) => ({ value: d.id, label: d.companyName }))} />
         </Form.Item>
-        <Form.Item name="freight" label="Freight (VND)">
+        <Form.Item name="freight" label={t("orderForm.freight")}>
           <InputNumber min={0} step={1000} style={{ width: 240 }} />
         </Form.Item>
 
@@ -59,32 +61,35 @@ export default function OrderFormPage() {
             <Space direction="vertical" style={{ width: "100%" }}>
               {fields.map((field) => (
                 <Space key={field.key} align="baseline" style={{ display: "flex" }}>
-                  <Form.Item name={[field.name, "productId"]} label={field.name === 0 ? "Product" : undefined} style={{ width: 460, marginBottom: 8 }}>
+                  <Form.Item name={[field.name, "productId"]} label={field.name === 0 ? t("orderForm.product") : undefined} style={{ width: 460, marginBottom: 8 }}>
                     <Select
                       showSearch
                       optionFilterProp="label"
-                      placeholder="Choose product"
-                      options={masters.products.map((p) => ({ value: p.id, label: `${p.name} — ${vnd(p.price)} (${p.unitsInStock} left)` }))}
+                      placeholder={t("orderForm.chooseProduct")}
+                      options={masters.products.map((p) => ({
+                        value: p.id,
+                        label: t("orderForm.option", { name: p.name, price: vnd(p.price), count: p.unitsInStock }),
+                      }))}
                     />
                   </Form.Item>
-                  <Form.Item name={[field.name, "quantity"]} label={field.name === 0 ? "Quantity" : undefined} style={{ marginBottom: 8 }}>
+                  <Form.Item name={[field.name, "quantity"]} label={field.name === 0 ? t("orders.items") : undefined} style={{ marginBottom: 8 }}>
                     <InputNumber min={1} />
                   </Form.Item>
                   <Button danger onClick={() => remove(field.name)}>
-                    Remove
+                    {t("common.remove")}
                   </Button>
                 </Space>
               ))}
-              <Button onClick={() => add({ quantity: 1 })}>Add product</Button>
+              <Button onClick={() => add({ quantity: 1 })}>{t("orderForm.addProduct")}</Button>
             </Space>
           )}
         </Form.List>
 
         <Space style={{ marginTop: 24 }}>
           <Button type="primary" htmlType="submit" loading={create.isPending}>
-            Create order
+            {t("admin.orders.new")}
           </Button>
-          <Button onClick={() => navigate("/admin/orders")}>Cancel</Button>
+          <Button onClick={() => navigate("/admin/orders")}>{t("common.cancel")}</Button>
         </Space>
       </Form>
     </Card>

@@ -15,17 +15,18 @@ import {
   UserSwitchOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../auth/AuthContext";
+import { LanguageSwitch, useI18n } from "../i18n";
 
 const { Header, Sider, Content } = Layout;
 
 const navItems = [
-  { key: "/admin", icon: <DashboardOutlined />, label: <Link to="/admin">Dashboard</Link> },
-  { key: "/admin/products", icon: <AppstoreOutlined />, label: <Link to="/admin/products">Products</Link> },
-  { key: "/admin/orders", icon: <ShopOutlined />, label: <Link to="/admin/orders">Orders</Link> },
-  { key: "/admin/customers", icon: <TeamOutlined />, label: <Link to="/admin/customers">Customers</Link> },
-  { key: "/admin/inventory", icon: <DatabaseOutlined />, label: <Link to="/admin/inventory">Inventory</Link> },
-  { key: "/admin/coupons", icon: <TagsOutlined />, label: <Link to="/admin/coupons">Coupons</Link> },
-  { key: "/admin/users", icon: <UserSwitchOutlined />, label: <Link to="/admin/users">Users</Link>, adminOnly: true },
+  { key: "/admin", icon: <DashboardOutlined />, labelKey: "nav.dashboard" },
+  { key: "/admin/products", icon: <AppstoreOutlined />, labelKey: "nav.products" },
+  { key: "/admin/orders", icon: <ShopOutlined />, labelKey: "nav.orders" },
+  { key: "/admin/customers", icon: <TeamOutlined />, labelKey: "nav.customers" },
+  { key: "/admin/inventory", icon: <DatabaseOutlined />, labelKey: "nav.inventory" },
+  { key: "/admin/coupons", icon: <TagsOutlined />, labelKey: "nav.coupons" },
+  { key: "/admin/users", icon: <UserSwitchOutlined />, labelKey: "nav.users", adminOnly: true },
 ];
 
 function activeKey(pathname) {
@@ -37,17 +38,22 @@ function activeKey(pathname) {
 }
 
 export default function AdminLayout() {
+  const { t } = useI18n();
   const { user, logout } = useAuth();
   const isAdmin = Boolean(user?.roles?.includes("admin"));
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
+  const items = navItems
+    .filter((item) => isAdmin || !item.adminOnly)
+    .map(({ key, icon, labelKey }) => ({ key, icon, label: <Link to={key}>{t(labelKey)}</Link> }));
+
   const menu = [
-    { key: "store", icon: <InboxOutlined />, label: <Link to="/">Back to store</Link> },
-    { key: "api-docs", icon: <ApiOutlined />, label: "API docs" },
+    { key: "store", icon: <InboxOutlined />, label: <Link to="/">{t("nav.backToStore")}</Link> },
+    { key: "api-docs", icon: <ApiOutlined />, label: t("nav.apiDocs") },
     { type: "divider" },
-    { key: "logout", icon: <LogoutOutlined />, label: "Log out", danger: true },
+    { key: "logout", icon: <LogoutOutlined />, label: t("nav.logout"), danger: true },
   ];
 
   function handleMenu({ key }) {
@@ -67,26 +73,24 @@ export default function AdminLayout() {
           <span className="logo">T</span>
           {!collapsed && <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Thao Store</span>}
         </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[activeKey(location.pathname)]}
-          items={navItems.filter((item) => isAdmin || !item.adminOnly)}
-        />
+        <Menu theme="dark" mode="inline" selectedKeys={[activeKey(location.pathname)]} items={items} />
       </Sider>
       <Layout>
         <Header className="admin-header">
           <Typography.Title level={5} style={{ margin: 0 }}>
-            Store management
+            {t("admin.storeManagement")}
           </Typography.Title>
-          <Dropdown menu={{ items: menu, onClick: handleMenu }} trigger={["click"]}>
-            <Button type="text">
-              <Space>
-                <Avatar size="small" icon={<UserOutlined />} />
-                {user?.username || user?.email}
-              </Space>
-            </Button>
-          </Dropdown>
+          <Space>
+            <LanguageSwitch />
+            <Dropdown menu={{ items: menu, onClick: handleMenu }} trigger={["click"]}>
+              <Button type="text">
+                <Space>
+                  <Avatar size="small" icon={<UserOutlined />} />
+                  {user?.username || user?.email}
+                </Space>
+              </Button>
+            </Dropdown>
+          </Space>
         </Header>
         <Content className="admin-content">
           <Outlet />

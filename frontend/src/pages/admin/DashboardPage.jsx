@@ -4,9 +4,11 @@ import { Card, Col, List, Row, Spin, Statistic, Table, Tag, Typography } from "a
 import { Line, Pie } from "@ant-design/charts";
 import { ArrowUpOutlined, DollarOutlined, ShoppingOutlined, TeamOutlined, WarningOutlined } from "@ant-design/icons";
 import { api } from "../../lib/api";
-import { STATUS_LABELS, vnd } from "../../lib/format";
+import { statusLabel, vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const { data, isLoading } = useQuery({
     queryKey: ["analytics"],
     queryFn: async () => (await api("/api/analytics/summary"))
@@ -16,7 +18,7 @@ export default function DashboardPage() {
 
   const { totals, ordersByStatus, revenueByDay, topProducts, lowStock } = data;
   const statusData = Object.entries(ordersByStatus).map(([status, count]) => ({
-    status: STATUS_LABELS[status] || status,
+    status: statusLabel(status),
     count,
   }));
   const revenueSeries = revenueByDay.map((row) => ({
@@ -29,34 +31,34 @@ export default function DashboardPage() {
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
-            <Statistic title="Revenue (paid orders)" value={totals.revenue} formatter={(v) => vnd(v)} prefix={<DollarOutlined />} />
+            <Statistic title={t("dashboard.revenue")} value={totals.revenue} formatter={(v) => vnd(v)} prefix={<DollarOutlined />} />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
-            <Statistic title="Paid orders" value={totals.paidOrders} prefix={<ShoppingOutlined />} />
+            <Statistic title={t("dashboard.paidOrders")} value={totals.paidOrders} prefix={<ShoppingOutlined />} />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
-            <Statistic title="Average order value" value={totals.averageOrderValue} formatter={(v) => vnd(v)} prefix={<ArrowUpOutlined />} />
+            <Statistic title={t("dashboard.averageOrder")} value={totals.averageOrderValue} formatter={(v) => vnd(v)} prefix={<ArrowUpOutlined />} />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
-            <Statistic title="Customers" value={totals.customers} prefix={<TeamOutlined />} />
+            <Statistic title={t("dashboard.customers")} value={totals.customers} prefix={<TeamOutlined />} />
           </Card>
         </Col>
       </Row>
 
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={16}>
-          <Card title="Revenue, last 14 days">
+          <Card title={t("dashboard.revenue14")}>
             <Line data={revenueSeries} xField="date" yField="revenue" height={260} smooth point={{ size: 3 }} />
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="Orders by status">
+          <Card title={t("dashboard.byStatus")}>
             <Pie data={statusData} angleField="count" colorField="status" height={260} innerRadius={0.6} />
           </Card>
         </Col>
@@ -64,7 +66,7 @@ export default function DashboardPage() {
 
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
-          <Card title="Top products by revenue">
+          <Card title={t("dashboard.topProducts")}>
             <Table
               bordered
               size="small"
@@ -72,9 +74,9 @@ export default function DashboardPage() {
               rowKey="productId"
               dataSource={topProducts}
               columns={[
-                { title: "Product", dataIndex: "name" },
-                { title: "Sold", dataIndex: "quantity", align: "right" },
-                { title: "Revenue", dataIndex: "revenue", align: "right", render: vnd },
+                { title: t("dashboard.product"), dataIndex: "name" },
+                { title: t("dashboard.sold"), dataIndex: "quantity", align: "right" },
+                { title: t("dashboard.revenueColumn"), dataIndex: "revenue", align: "right", render: vnd },
               ]}
             />
           </Card>
@@ -84,23 +86,23 @@ export default function DashboardPage() {
             title={
               <span>
                 <WarningOutlined style={{ color: "#fa8c16", marginRight: 8 }} />
-                Low stock
+                {t("dashboard.lowStock")}
               </span>
             }
-            extra={<Link to="/admin/inventory">Manage inventory</Link>}
+            extra={<Link to="/admin/inventory">{t("dashboard.manageInventory")}</Link>}
           >
             {lowStock.length ? (
               <List
                 size="small"
                 dataSource={lowStock}
                 renderItem={(item) => (
-                  <List.Item extra={<Tag color="orange">{item.unitsInStock} left</Tag>}>
+                  <List.Item extra={<Tag color="orange">{t("dashboard.left", { count: item.unitsInStock })}</Tag>}>
                     <Typography.Text>{item.name}</Typography.Text>
                   </List.Item>
                 )}
               />
             ) : (
-              <Typography.Text type="secondary">Nothing is low on stock.</Typography.Text>
+              <Typography.Text type="secondary">{t("dashboard.noLowStock")}</Typography.Text>
             )}
           </Card>
         </Col>

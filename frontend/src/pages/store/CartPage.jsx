@@ -3,9 +3,11 @@ import { Button, Card, Col, Empty, InputNumber, Row, Space, Table, Typography, A
 import { DeleteOutlined } from "@ant-design/icons";
 import { useCart, useCartActions } from "../../lib/useCart";
 import { vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 import ProductImage from "../../components/ProductImage";
 
 export default function CartPage() {
+  const { t } = useI18n();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const cart = useCart(true);
@@ -15,9 +17,9 @@ export default function CartPage() {
 
   if (cart.data.items.length === 0) {
     return (
-      <Empty description="Your cart is empty.">
+      <Empty description={t("cart.empty")}>
         <Link to="/shop">
-          <Button type="primary">Continue shopping</Button>
+          <Button type="primary">{t("cart.continue")}</Button>
         </Link>
       </Empty>
     );
@@ -25,7 +27,7 @@ export default function CartPage() {
 
   const columns = [
     {
-      title: "Product",
+      title: t("cart.product"),
       dataIndex: "name",
       render: (_, item) => (
         <Space>
@@ -34,9 +36,9 @@ export default function CartPage() {
         </Space>
       ),
     },
-    { title: "Price", dataIndex: "unitPrice", align: "right", render: (value) => vnd(value) },
+    { title: t("cart.price"), dataIndex: "unitPrice", align: "right", render: (value) => vnd(value) },
     {
-      title: "Quantity",
+      title: t("cart.quantity"),
       dataIndex: "quantity",
       align: "center",
       render: (value, item) => (
@@ -55,12 +57,12 @@ export default function CartPage() {
         />
       ),
     },
-    { title: "Total", dataIndex: "lineTotal", align: "right", render: (value) => <Typography.Text strong>{vnd(value)}</Typography.Text> },
+    { title: t("cart.lineTotal"), dataIndex: "lineTotal", align: "right", render: (value) => <Typography.Text strong>{vnd(value)}</Typography.Text> },
     {
       title: "",
       key: "remove",
       render: (_, item) => (
-        <Button danger type="text" icon={<DeleteOutlined />} onClick={() => removeItem.mutate(item.productId)} aria-label="Remove" />
+        <Button danger type="text" icon={<DeleteOutlined />} onClick={() => removeItem.mutate(item.productId)} aria-label={t("cart.remove")} />
       ),
     },
   ];
@@ -68,31 +70,31 @@ export default function CartPage() {
   return (
     <Row gutter={[24, 24]}>
       <Col xs={24} lg={16}>
-        <Card title={`Shopping cart (${cart.data.itemCount} items)`}>
+        <Card title={t("cart.title", { count: cart.data.itemCount })}>
           <Table bordered rowKey="productId" columns={columns} dataSource={cart.data.items} pagination={false} />
         </Card>
       </Col>
       <Col xs={24} lg={8}>
-        <Card title="Summary">
+        <Card title={t("cart.summary")}>
           <Space direction="vertical" style={{ width: "100%" }} size={8}>
             <Row justify="space-between">
-              <Typography.Text>Subtotal</Typography.Text>
+              <Typography.Text>{t("cart.subtotal")}</Typography.Text>
               <Typography.Text>{vnd(cart.data.subtotal)}</Typography.Text>
             </Row>
             <Row justify="space-between">
-              <Typography.Text>Shipping</Typography.Text>
-              <Typography.Text>{cart.data.shipping === 0 ? "Free" : vnd(cart.data.shipping)}</Typography.Text>
+              <Typography.Text>{t("cart.shipping")}</Typography.Text>
+              <Typography.Text>{cart.data.shipping === 0 ? t("cart.free") : vnd(cart.data.shipping)}</Typography.Text>
             </Row>
             <Row justify="space-between">
               <Typography.Title level={5} style={{ margin: 0 }}>
-                Total
+                {t("cart.totalLabel")}
               </Typography.Title>
               <Typography.Title level={5} style={{ margin: 0 }}>
                 {vnd(cart.data.total)}
               </Typography.Title>
             </Row>
             <Button type="primary" size="large" block onClick={() => navigate("/checkout")}>
-              Checkout
+              {t("cart.checkout")}
             </Button>
           </Space>
         </Card>

@@ -4,13 +4,15 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Breadcrumb, Button, Col, Divider, Empty, Form, Input, InputNumber, List, Rate, Row, Space, Spin, Tag, Typography, App } from "antd";
 import { ShoppingCartOutlined } from "@ant-design/icons";
 import { api } from "../../lib/api";
-import { vnd } from "../../lib/format";
+import { dateText, vnd } from "../../lib/format";
 import { useAuth } from "../../auth/AuthContext";
 import { useCartActions } from "../../lib/useCart";
+import { useI18n } from "../../i18n";
 import ProductCard from "../../components/ProductCard";
 import ProductImage from "../../components/ProductImage";
 
 export default function ProductPage() {
+  const { t } = useI18n();
   const { message } = App.useApp();
   const { slug } = useParams();
   const { isAuthenticated } = useAuth();
@@ -28,14 +30,14 @@ export default function ProductPage() {
   const review = useMutation({
     mutationFn: (values) => api(`/api/store/products/${slug}/reviews`, { method: "POST", body: values }),
     onSuccess: () => {
-      message.success("Thanks for your review.");
+      message.success(t("product.thanks"));
       queryClient.invalidateQueries({ queryKey: ["store", "product", slug] });
     },
     onError: (err) => message.error(err.message),
   });
 
   if (isLoading) return <Spin size="large" />;
-  if (error || !data) return <Empty description="Product not found." />;
+  if (error || !data) return <Empty description={t("product.notFound")} />;
 
   const { product, related } = data;
   const images = [product.imageUrl, ...(product.gallery || [])].filter(Boolean);
@@ -53,8 +55,8 @@ export default function ProductPage() {
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
       <Breadcrumb
         items={[
-          { title: <Link to="/">Home</Link> },
-          { title: <Link to="/shop">Shop</Link> },
+          { title: <Link to="/">{t("nav.home")}</Link> },
+          { title: <Link to="/shop">{t("nav.shop")}</Link> },
           ...(product.category ? [{ title: <Link to={`/shop?category=${product.category.slug}`}>{product.category.name}</Link> }] : []),
           { title: product.name },
         ]}
@@ -90,13 +92,13 @@ export default function ProductPage() {
             <Space>
               <Rate disabled allowHalf value={Number(product.ratingAverage)} />
               <Typography.Text type="secondary">
-                {Number(product.ratingAverage).toFixed(1)} · {product.reviewCount} reviews
+                {t("product.ratingSummary", { average: Number(product.ratingAverage).toFixed(1), count: product.reviewCount })}
               </Typography.Text>
             </Space>
             <Typography.Title level={2} style={{ margin: "8px 0" }}>
               {vnd(product.price)}
             </Typography.Title>
-            {product.inStock ? <Tag color="green">In stock</Tag> : <Tag color="red">Out of stock</Tag>}
+            {product.inStock ? <Tag color="green">{t("product.inStock")}</Tag> : <Tag color="red">{t("product.outOfStock")}</Tag>}
             <Typography.Paragraph>{product.description}</Typography.Paragraph>
 
             <Space align="center">
@@ -109,11 +111,11 @@ export default function ProductPage() {
                 loading={addItem.isPending}
                 onClick={handleAdd}
               >
-                Add to cart
+                {t("product.addToCart")}
               </Button>
             </Space>
 
-            <Typography.Text type="secondary">Free shipping on orders from 500,000 VND. Cash on delivery available.</Typography.Text>
+            <Typography.Text type="secondary">{t("product.freeShipping")}</Typography.Text>
           </Space>
         </Col>
       </Row>
@@ -122,7 +124,7 @@ export default function ProductPage() {
 
       <Row gutter={[32, 24]}>
         <Col xs={24} md={14}>
-          <Typography.Title level={4}>Reviews</Typography.Title>
+          <Typography.Title level={4}>{t("product.reviews")}</Typography.Title>
           {product.reviews.length ? (
             <List
               itemLayout="vertical"
@@ -136,44 +138,44 @@ export default function ProductPage() {
                     </Space>
                     <Typography.Text>{item.body}</Typography.Text>
                     <Typography.Text type="secondary">
-                      {item.author} · {new Date(item.createdAt).toLocaleDateString("vi-VN")}
+                      {item.author} · {dateText(item.createdAt)}
                     </Typography.Text>
                   </Space>
                 </List.Item>
               )}
             />
           ) : (
-            <Typography.Text type="secondary">No reviews yet.</Typography.Text>
+            <Typography.Text type="secondary">{t("product.noReviews")}</Typography.Text>
           )}
         </Col>
 
         <Col xs={24} md={10}>
-          <Typography.Title level={4}>Write a review</Typography.Title>
-          <Typography.Paragraph type="secondary">Available after you receive this product.</Typography.Paragraph>
+          <Typography.Title level={4}>{t("product.writeReview")}</Typography.Title>
+          <Typography.Paragraph type="secondary">{t("product.reviewNote")}</Typography.Paragraph>
           {isAuthenticated ? (
             <Form layout="vertical" onFinish={(values) => review.mutate(values)}>
-              <Form.Item name="rating" label="Rating" rules={[{ required: true, message: "Choose a rating" }]}>
+              <Form.Item name="rating" label={t("product.ratingLabel")} rules={[{ required: true, message: t("product.ratingRequired") }]}>
                 <Rate />
               </Form.Item>
-              <Form.Item name="title" label="Title">
+              <Form.Item name="title" label={t("product.titleLabel")}>
                 <Input maxLength={80} />
               </Form.Item>
-              <Form.Item name="body" label="Review">
+              <Form.Item name="body" label={t("product.reviewLabel")}>
                 <Input.TextArea rows={4} maxLength={1000} />
               </Form.Item>
               <Button type="primary" htmlType="submit" loading={review.isPending}>
-                Submit review
+                {t("product.submitReview")}
               </Button>
             </Form>
           ) : (
-            <Button onClick={() => navigate("/login", { state: { from: `/product/${slug}` } })}>Sign in to review</Button>
+            <Button onClick={() => navigate("/login", { state: { from: `/product/${slug}` } })}>{t("product.signInToReview")}</Button>
           )}
         </Col>
       </Row>
 
       {related.length > 0 && (
         <>
-          <Typography.Title level={4}>You may also like</Typography.Title>
+          <Typography.Title level={4}>{t("product.alsoLike")}</Typography.Title>
           <Row gutter={[16, 16]}>
             {related.map((item) => (
               <Col key={item.id} xs={12} md={6}>

@@ -2,9 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Button, Card, Col, Row, Space, Spin, Typography } from "antd";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 import ProductCard from "../../components/ProductCard";
 
 export default function HomePage() {
+  const { t } = useI18n();
   const categories = useQuery({
     queryKey: ["store", "categories"],
     queryFn: async () => (await api("/api/store/categories")).categories,
@@ -20,14 +22,14 @@ export default function HomePage() {
       <Card style={{ background: "#fff", border: "1px solid #f0f0f0" }}>
         <Space direction="vertical" size={12}>
           <Typography.Title level={2} style={{ margin: 0 }}>
-            Phones and accessories, delivered across Vietnam
+            {t("home.heroTitle")}
           </Typography.Title>
           <Typography.Paragraph type="secondary" style={{ fontSize: 16, margin: 0 }}>
-            Genuine models from Apple, Samsung, Xiaomi and OPPO, with cash-on-delivery and coupons.
+            {t("home.heroText")}
           </Typography.Paragraph>
           <Link to="/shop">
             <Button size="large" type="default">
-              Shop now
+              {t("home.shopNow")}
             </Button>
           </Link>
         </Space>
@@ -35,7 +37,7 @@ export default function HomePage() {
 
       <section>
         <Typography.Title level={4} className="section-title">
-          Shop by category
+          {t("home.byCategory")}
         </Typography.Title>
         {categories.isLoading ? (
           <Spin />
@@ -48,7 +50,7 @@ export default function HomePage() {
                     <Typography.Text strong>{category.name}</Typography.Text>
                     <br />
                     <Typography.Text type="secondary">
-                      {category.productCount} {category.productCount === 1 ? "product" : "products"}
+                      {t(category.productCount === 1 ? "count.one" : "count.other", { count: category.productCount })}
                     </Typography.Text>
                   </Card>
                 </Link>
@@ -60,7 +62,7 @@ export default function HomePage() {
 
       <section>
         <Typography.Title level={4} className="section-title">
-          Top rated
+          {t("home.topRated")}
         </Typography.Title>
         {featured.isLoading ? (
           <Spin />

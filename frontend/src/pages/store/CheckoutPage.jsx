@@ -6,8 +6,10 @@ import { Alert, Button, Card, Col, Divider, Empty, Form, Input, Radio, Row, Spac
 import { api } from "../../lib/api";
 import { useCart } from "../../lib/useCart";
 import { vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 
 export default function CheckoutPage() {
+  const { t } = useI18n();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -38,7 +40,7 @@ export default function CheckoutPage() {
     mutationFn: () => api("/api/checkout", { method: "POST", body: { addressId, paymentMethod, couponCode: couponCode || undefined } }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-      message.success("Order placed.");
+      message.success(t("checkout.orderPlaced"));
       navigate(`/orders/${data.order.id}`);
     },
     onError: (err) => message.error(err.message),
@@ -48,9 +50,9 @@ export default function CheckoutPage() {
 
   if (cart.data.items.length === 0) {
     return (
-      <Empty description="Your cart is empty.">
+      <Empty description={t("cart.empty")}>
         <Link to="/shop">
-          <Button type="primary">Continue shopping</Button>
+          <Button type="primary">{t("cart.continue")}</Button>
         </Link>
       </Empty>
     );
@@ -63,7 +65,7 @@ export default function CheckoutPage() {
     <Row gutter={[24, 24]}>
       <Col xs={24} lg={15}>
         <Space direction="vertical" size={16} style={{ width: "100%" }}>
-          <Card title="Delivery address">
+          <Card title={t("checkout.address")}>
             {addresses.data?.length ? (
               <Radio.Group value={selectedId} onChange={(event) => setAddressId(event.target.value)} style={{ width: "100%" }}>
                 <Space direction="vertical" style={{ width: "100%" }}>
@@ -79,74 +81,74 @@ export default function CheckoutPage() {
                 </Space>
               </Radio.Group>
             ) : (
-              <Typography.Text type="secondary">No saved addresses yet. Add one below.</Typography.Text>
+              <Typography.Text type="secondary">{t("checkout.noAddress")}</Typography.Text>
             )}
 
             {addingAddress ? (
               <Form form={addressForm} layout="vertical" style={{ marginTop: 16 }} onFinish={(values) => saveAddress.mutate(values)}>
                 <Row gutter={12}>
                   <Col xs={24} md={12}>
-                    <Form.Item name="fullName" label="Full name" rules={[{ required: true }]}>
+                    <Form.Item name="fullName" label={t("checkout.fullName")} rules={[{ required: true }]}>
                       <Input />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Form.Item name="phone" label="Phone" rules={[{ required: true }]}>
+                    <Form.Item name="phone" label={t("checkout.phone")} rules={[{ required: true }]}>
                       <Input />
                     </Form.Item>
                   </Col>
                   <Col xs={24}>
-                    <Form.Item name="line1" label="Street address" rules={[{ required: true }]}>
+                    <Form.Item name="line1" label={t("checkout.street")} rules={[{ required: true }]}>
                       <Input />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Form.Item name="city" label="City" rules={[{ required: true }]}>
+                    <Form.Item name="city" label={t("checkout.city")} rules={[{ required: true }]}>
                       <Input />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Form.Item name="region" label="Province / region">
+                    <Form.Item name="region" label={t("checkout.region")}>
                       <Input />
                     </Form.Item>
                   </Col>
                 </Row>
                 <Space>
                   <Button type="primary" htmlType="submit" loading={saveAddress.isPending}>
-                    Save address
+                    {t("checkout.saveAddress")}
                   </Button>
-                  <Button onClick={() => setAddingAddress(false)}>Cancel</Button>
+                  <Button onClick={() => setAddingAddress(false)}>{t("common.cancel")}</Button>
                 </Space>
               </Form>
             ) : (
               <Button style={{ marginTop: 12 }} onClick={() => setAddingAddress(true)}>
-                Add new address
+                {t("checkout.addAddress")}
               </Button>
             )}
           </Card>
 
-          <Card title="Payment">
+          <Card title={t("checkout.payment")}>
             <Radio.Group value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)}>
               <Space direction="vertical">
-                <Radio value="cod">Cash on delivery</Radio>
-                <Radio value="card">Card (demo: marked as paid instantly)</Radio>
+                <Radio value="cod">{t("checkout.cod")}</Radio>
+                <Radio value="card">{t("checkout.card")}</Radio>
               </Space>
             </Radio.Group>
           </Card>
 
-          <Card title="Coupon">
+          <Card title={t("checkout.coupon")}>
             <Space.Compact style={{ width: "100%", maxWidth: 420 }}>
-              <Input placeholder="Enter coupon code" value={couponCode} onChange={(event) => setCouponCode(event.target.value.toUpperCase())} />
+              <Input placeholder={t("checkout.couponPlaceholder")} value={couponCode} onChange={(event) => setCouponCode(event.target.value.toUpperCase())} />
             </Space.Compact>
             <Typography.Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0 }}>
-              The discount is applied when you place the order.
+              {t("checkout.couponNote")}
             </Typography.Paragraph>
           </Card>
         </Space>
       </Col>
 
       <Col xs={24} lg={9}>
-        <Card title="Order summary">
+        <Card title={t("checkout.summary")}>
           {cart.data.items.map((item) => (
             <Row key={item.productId} justify="space-between" style={{ marginBottom: 8 }}>
               <Typography.Text>
@@ -157,25 +159,25 @@ export default function CheckoutPage() {
           ))}
           <Divider />
           <Row justify="space-between">
-            <Typography.Text>Subtotal</Typography.Text>
+            <Typography.Text>{t("cart.subtotal")}</Typography.Text>
             <Typography.Text>{vnd(cart.data.subtotal)}</Typography.Text>
           </Row>
           <Row justify="space-between">
-            <Typography.Text>Shipping</Typography.Text>
-            <Typography.Text>{cart.data.shipping === 0 ? "Free" : vnd(cart.data.shipping)}</Typography.Text>
+            <Typography.Text>{t("cart.shipping")}</Typography.Text>
+            <Typography.Text>{cart.data.shipping === 0 ? t("cart.free") : vnd(cart.data.shipping)}</Typography.Text>
           </Row>
           <Divider />
           <Row justify="space-between" style={{ marginBottom: 16 }}>
             <Typography.Title level={5} style={{ margin: 0 }}>
-              Total
+              {t("cart.totalLabel")}
             </Typography.Title>
             <Typography.Title level={5} style={{ margin: 0 }}>
               {vnd(cart.data.total)}
             </Typography.Title>
           </Row>
-          {!selectedId && <Alert type="info" showIcon message="Choose or add a delivery address to continue." style={{ marginBottom: 12 }} />}
+          {!selectedId && <Alert type="info" showIcon message={t("checkout.chooseAddress")} style={{ marginBottom: 12 }} />}
           <Button type="primary" size="large" block disabled={!selectedId || cart.data.items.length === 0} loading={placeOrder.isPending} onClick={() => placeOrder.mutate()}>
-            Place order
+            {t("checkout.placeOrder")}
           </Button>
         </Card>
       </Col>

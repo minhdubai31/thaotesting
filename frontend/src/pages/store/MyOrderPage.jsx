@@ -3,12 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { Button, Card, Col, Descriptions, Empty, Row, Space, Steps, Table, Typography, Popconfirm, App } from "antd";
 import { api } from "../../lib/api";
 import { dateTimeText, vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 import StatusTag from "../../components/StatusTag";
 import ProductImage from "../../components/ProductImage";
 
 const progress = { pending: 0, paid: 1, shipped: 2, completed: 3 };
 
 export default function MyOrderPage() {
+  const { t } = useI18n();
   const { message } = App.useApp();
   const { id } = useParams();
   const queryClient = useQueryClient();
@@ -21,7 +23,7 @@ export default function MyOrderPage() {
   const cancel = useMutation({
     mutationFn: () => api(`/api/my/orders/${id}/cancel`, { method: "POST" }),
     onSuccess: () => {
-      message.success("Order cancelled.");
+      message.success(t("order.cancelled"));
       queryClient.invalidateQueries({ queryKey: ["my-order", id] });
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
     },
@@ -29,7 +31,7 @@ export default function MyOrderPage() {
   });
 
   if (isLoading) return null;
-  if (error || !data) return <Empty description="Order not found." />;
+  if (error || !data) return <Empty description={t("order.notFound")} />;
 
   const order = data;
   const step = progress[order.status];
@@ -37,7 +39,7 @@ export default function MyOrderPage() {
 
   const columns = [
     {
-      title: "Product",
+      title: t("order.product"),
       dataIndex: "name",
       render: (_, item) => (
         <Space>
@@ -48,9 +50,9 @@ export default function MyOrderPage() {
         </Space>
       ),
     },
-    { title: "Price", dataIndex: "unitPrice", align: "right", render: vnd },
-    { title: "Qty", dataIndex: "quantity", align: "center" },
-    { title: "Total", dataIndex: "lineTotal", align: "right", render: vnd },
+    { title: t("order.price"), dataIndex: "unitPrice", align: "right", render: vnd },
+    { title: t("order.qty"), dataIndex: "quantity", align: "center" },
+    { title: t("order.lineTotal"), dataIndex: "lineTotal", align: "right", render: vnd },
   ];
 
   return (
@@ -58,14 +60,14 @@ export default function MyOrderPage() {
       <Row justify="space-between" align="middle">
         <Col>
           <Typography.Title level={3} style={{ margin: 0 }}>
-            Order #{order.id.slice(0, 8)} <StatusTag status={order.status} />
+            {t("order.title", { id: order.id.slice(0, 8) })} <StatusTag status={order.status} />
           </Typography.Title>
         </Col>
         <Col>
           {order.status === "pending" && (
-            <Popconfirm title="Cancel this order?" okText="Cancel order" onConfirm={() => cancel.mutate()}>
+            <Popconfirm title={t("order.cancelConfirm")} okText={t("order.cancelButton")} onConfirm={() => cancel.mutate()}>
               <Button danger loading={cancel.isPending}>
-                Cancel order
+                {t("order.cancelButton")}
               </Button>
             </Popconfirm>
           )}
@@ -77,10 +79,10 @@ export default function MyOrderPage() {
           <Steps
             current={step}
             items={[
-              { title: "Placed" },
-              { title: "Paid" },
-              { title: "Shipped" },
-              { title: "Delivered" },
+              { title: t("order.step.placed") },
+              { title: t("order.step.paid") },
+              { title: t("order.step.shipped") },
+              { title: t("order.step.delivered") },
             ]}
           />
         </Card>
@@ -88,38 +90,38 @@ export default function MyOrderPage() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>
-          <Card title="Delivery">
+          <Card title={t("order.delivery")}>
             <Descriptions column={1} size="small">
-              <Descriptions.Item label="Recipient">{order.shipName}</Descriptions.Item>
-              <Descriptions.Item label="Address">
+              <Descriptions.Item label={t("order.recipient")}>{order.shipName}</Descriptions.Item>
+              <Descriptions.Item label={t("order.address")}>
                 {[order.shipAddress, order.shipCity].filter(Boolean).join(", ")}
               </Descriptions.Item>
-              <Descriptions.Item label="Tracking">{order.trackingNumber || "Not shipped yet"}</Descriptions.Item>
+              <Descriptions.Item label={t("order.tracking")}>{order.trackingNumber || t("order.notShipped")}</Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>
         <Col xs={24} md={12}>
-          <Card title="Payment">
+          <Card title={t("checkout.payment")}>
             <Descriptions column={1} size="small">
-              <Descriptions.Item label="Method">{order.paymentMethod === "card" ? "Card" : "Cash on delivery"}</Descriptions.Item>
-              <Descriptions.Item label="Payment">{order.paymentStatus}</Descriptions.Item>
-              <Descriptions.Item label="Placed">{dateTimeText(order.orderDate)}</Descriptions.Item>
+              <Descriptions.Item label={t("order.method")}>{order.paymentMethod === "card" ? t("order.card") : t("checkout.cod")}</Descriptions.Item>
+              <Descriptions.Item label={t("order.paymentStatus")}>{order.paymentStatus}</Descriptions.Item>
+              <Descriptions.Item label={t("order.placed")}>{dateTimeText(order.orderDate)}</Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>
       </Row>
 
-      <Card title="Items">
+      <Card title={t("order.items")}>
         <Table bordered rowKey="productId" columns={columns} dataSource={order.items} pagination={false} />
         <Descriptions column={1} size="small" style={{ marginTop: 16, maxWidth: 360, marginLeft: "auto" }}>
-          <Descriptions.Item label="Subtotal">{vnd(order.subtotal)}</Descriptions.Item>
+          <Descriptions.Item label={t("cart.subtotal")}>{vnd(order.subtotal)}</Descriptions.Item>
           {order.discountAmount > 0 && (
-            <Descriptions.Item label={`Discount${order.couponCode ? ` (${order.couponCode})` : ""}`}>
+            <Descriptions.Item label={`${t("order.discount")}${order.couponCode ? ` (${order.couponCode})` : ""}`}>
               -{vnd(order.discountAmount)}
             </Descriptions.Item>
           )}
-          <Descriptions.Item label="Shipping">{order.shipping === 0 ? "Free" : vnd(order.shipping)}</Descriptions.Item>
-          <Descriptions.Item label={<strong>Total</strong>}>
+          <Descriptions.Item label={t("cart.shipping")}>{order.shipping === 0 ? t("cart.free") : vnd(order.shipping)}</Descriptions.Item>
+          <Descriptions.Item label={<strong>{t("cart.totalLabel")}</strong>}>
             <strong>{vnd(order.total)}</strong>
           </Descriptions.Item>
         </Descriptions>

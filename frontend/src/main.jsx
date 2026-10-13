@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App as AntApp, ConfigProvider } from "antd";
+import viVN from "antd/locale/vi_VN";
+import enUS from "antd/locale/en_US";
+import dayjs from "dayjs";
+import "dayjs/locale/vi";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
+import { I18nProvider, useI18n } from "./i18n";
 import "./styles.css";
 
 const queryClient = new QueryClient({
@@ -45,18 +50,34 @@ const theme = {
   },
 };
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <ConfigProvider theme={theme}>
+// Ant Design's built-in text (pagination, date pickers) and dayjs follow the chosen language.
+function Providers({ children }) {
+  const { lang } = useI18n();
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+  dayjs.locale(lang === "vi" ? "vi" : "en");
+
+  return (
+    <ConfigProvider theme={theme} locale={lang === "vi" ? viVN : enUS}>
       <AntApp>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
-            <AuthProvider>
-              <App />
-            </AuthProvider>
+            <AuthProvider>{children}</AuthProvider>
           </BrowserRouter>
         </QueryClientProvider>
       </AntApp>
     </ConfigProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <I18nProvider>
+      <Providers>
+        <App />
+      </Providers>
+    </I18nProvider>
   </React.StrictMode>
 );

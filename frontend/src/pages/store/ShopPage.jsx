@@ -2,18 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { Col, Empty, Pagination, Row, Select, Space, Spin, InputNumber, Button, Typography } from "antd";
 import { api, toQuery } from "../../lib/api";
+import { useI18n } from "../../i18n";
 import ProductCard from "../../components/ProductCard";
 import SearchInput from "../../components/SearchInput";
 
-const sortOptions = [
-  { value: "newest", label: "Newest" },
-  { value: "price_asc", label: "Price: low to high" },
-  { value: "price_desc", label: "Price: high to low" },
-  { value: "rating", label: "Top rated" },
-  { value: "name", label: "Name" },
-];
-
 export default function ShopPage() {
+  const { t } = useI18n();
   const [params, setParams] = useSearchParams();
   const page = Number(params.get("page")) || 1;
   const pageSize = 12;
@@ -25,6 +19,14 @@ export default function ShopPage() {
     minPrice: params.get("minPrice") || "",
     maxPrice: params.get("maxPrice") || "",
   };
+
+  const sortOptions = [
+    { value: "newest", label: t("shop.sortNewest") },
+    { value: "price_asc", label: t("shop.sortPriceAsc") },
+    { value: "price_desc", label: t("shop.sortPriceDesc") },
+    { value: "rating", label: t("shop.sortRating") },
+    { value: "name", label: t("shop.sortName") },
+  ];
 
   function update(changes) {
     const next = new URLSearchParams(params);
@@ -55,21 +57,21 @@ export default function ShopPage() {
     <Space direction="vertical" size={16} style={{ width: "100%" }}>
       <Typography.Title level={3} style={{ margin: 0 }}>
         {filters.category
-          ? categories.data?.find((c) => c.slug === filters.category)?.name || "Shop"
+          ? categories.data?.find((c) => c.slug === filters.category)?.name || t("nav.shop")
           : filters.q
-            ? `Results for "${filters.q}"`
-            : "All products"}
+            ? t("shop.results", { q: filters.q })
+            : t("shop.allProducts")}
       </Typography.Title>
 
       <Row gutter={[12, 12]} align="middle">
         <Col xs={24} md={8}>
-          <SearchInput placeholder="Search products" value={filters.q} onSearch={(q) => update({ q })} width="100%" />
+          <SearchInput placeholder={t("shop.searchPlaceholder")} value={filters.q} onSearch={(q) => update({ q })} width="100%" />
         </Col>
         <Col xs={12} md={4}>
           <Select
             style={{ width: "100%" }}
             allowClear
-            placeholder="Category"
+            placeholder={t("shop.category")}
             value={filters.category || undefined}
             onChange={(value) => update({ category: value || "" })}
             options={categories.data?.map((c) => ({ value: c.slug, label: c.name }))}
@@ -79,7 +81,7 @@ export default function ShopPage() {
           <Select
             style={{ width: "100%" }}
             allowClear
-            placeholder="Brand"
+            placeholder={t("shop.brand")}
             value={filters.brand || undefined}
             onChange={(value) => update({ brand: value || "" })}
             options={brands.data?.map((b) => ({ value: b, label: b }))}
@@ -97,7 +99,7 @@ export default function ShopPage() {
 
       <Space wrap>
         <InputNumber
-          placeholder="Min price"
+          placeholder={t("shop.minPrice")}
           min={0}
           step={100000}
           defaultValue={filters.minPrice ? Number(filters.minPrice) : undefined}
@@ -105,14 +107,14 @@ export default function ShopPage() {
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
         <InputNumber
-          placeholder="Max price"
+          placeholder={t("shop.maxPrice")}
           min={0}
           step={100000}
           defaultValue={filters.maxPrice ? Number(filters.maxPrice) : undefined}
           onChange={(value) => update({ maxPrice: value ?? "" })}
           formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
-        <Button onClick={() => setParams(new URLSearchParams())}>Clear filters</Button>
+        <Button onClick={() => setParams(new URLSearchParams())}>{t("shop.clearFilters")}</Button>
       </Space>
 
       {products.isLoading ? (
@@ -136,7 +138,7 @@ export default function ShopPage() {
           />
         </>
       ) : (
-        <Empty description="No products match these filters." />
+        <Empty description={t("shop.empty")} />
       )}
     </Space>
   );

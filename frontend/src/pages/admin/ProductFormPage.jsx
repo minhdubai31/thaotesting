@@ -1,14 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
-import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Space, Spin, Switch, Popconfirm, Image, Upload, App } from "antd";
+import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Space, Spin, Switch, Popconfirm, Upload, App } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { api } from "../../lib/api";
 import { imageFileToDataUrl } from "../../lib/image";
 import { useMasters } from "../../lib/useMasters";
+import { useI18n } from "../../i18n";
 import ProductImage from "../../components/ProductImage";
 
 export default function ProductFormPage() {
+  const { t } = useI18n();
   const { message } = App.useApp();
   const { id } = useParams();
   const isNew = !id || id === "new";
@@ -28,7 +30,7 @@ export default function ProductFormPage() {
     mutationFn: (body) =>
       isNew ? api("/api/products", { method: "POST", body }) : api(`/api/products/${id}`, { method: "PATCH", body }),
     onSuccess: (data) => {
-      message.success(isNew ? "Product created." : "Product saved.");
+      message.success(isNew ? t("productForm.created") : t("productForm.saved"));
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["masters"] });
       navigate(`/admin/products/${data.product.id}`, { replace: true });
@@ -39,7 +41,7 @@ export default function ProductFormPage() {
   const deactivate = useMutation({
     mutationFn: () => api(`/api/products/${id}`, { method: "DELETE" }),
     onSuccess: () => {
-      message.success("Product deactivated.");
+      message.success(t("products.deactivated"));
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       navigate("/admin/products");
     },
@@ -94,7 +96,7 @@ export default function ProductFormPage() {
   }
 
   return (
-    <Card title={<PageTitle back="/admin/products">{isNew ? "New product" : product.data.name}</PageTitle>}>
+    <Card title={<PageTitle back="/admin/products">{isNew ? t("products.new") : product.data.name}</PageTitle>}>
       <Row gutter={[24, 24]}>
         <Col xs={24} md={8}>
           <ProductImage src={imageUrl} height={260} preview />
@@ -108,42 +110,42 @@ export default function ProductFormPage() {
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
-                <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+                <Form.Item name="name" label={t("products.name")} rules={[{ required: true }]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
-                <Form.Item name="brand" label="Brand" rules={[{ required: true }]}>
+                <Form.Item name="brand" label={t("productForm.brand")} rules={[{ required: true }]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
-                <Form.Item name="model" label="Model" rules={[{ required: true }]}>
+                <Form.Item name="model" label={t("productForm.model")} rules={[{ required: true }]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
-                <Form.Item name="categoryId" label="Category">
+                <Form.Item name="categoryId" label={t("products.category")}>
                   <Select allowClear options={masters?.categories.map((c) => ({ value: c.id, label: c.name }))} />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
-                <Form.Item name="supplierId" label="Supplier">
+                <Form.Item name="supplierId" label={t("productForm.supplier")}>
                   <Select allowClear options={masters?.suppliers.map((s) => ({ value: s.id, label: s.companyName }))} />
                 </Form.Item>
               </Col>
               <Col xs={24} md={8}>
-                <Form.Item name="price" label="Price (VND)" rules={[{ required: true }]}>
+                <Form.Item name="price" label={t("productForm.priceVnd")} rules={[{ required: true }]}>
                   <InputNumber min={0} step={1000} style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
               <Col xs={24} md={8}>
-                <Form.Item name="quantity" label={isNew ? "Opening stock" : "Stock on hand"} rules={[{ required: true }]}>
+                <Form.Item name="quantity" label={isNew ? t("productForm.openingStock") : t("productForm.stockOnHand")} rules={[{ required: true }]}>
                   <InputNumber min={0} style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
               <Col xs={24} md={8}>
-                <Form.Item name="reorderLevel" label="Reorder level" rules={[{ required: true }]}>
+                <Form.Item name="reorderLevel" label={t("productForm.reorderLevel")} rules={[{ required: true }]}>
                   <InputNumber min={0} style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
@@ -151,27 +153,27 @@ export default function ProductFormPage() {
                 <Form.Item name="imageUrl" hidden>
                   <Input />
                 </Form.Item>
-                <Form.Item label="Product image" extra="JPEG, PNG or WebP. Large photos are resized automatically.">
+                <Form.Item label={t("productForm.image")} extra={t("productForm.imageHelp")}>
                   <Space>
                     <Upload accept="image/jpeg,image/png,image/webp" showUploadList={false} beforeUpload={handleImageUpload}>
-                      <Button icon={<UploadOutlined />}>{imageUrl ? "Replace image" : "Upload image"}</Button>
+                      <Button icon={<UploadOutlined />}>{imageUrl ? t("productForm.replaceImage") : t("productForm.uploadImage")}</Button>
                     </Upload>
                     {imageUrl && (
                       <Button danger onClick={() => form.setFieldValue("imageUrl", "")}>
-                        Remove
+                        {t("common.remove")}
                       </Button>
                     )}
                   </Space>
                 </Form.Item>
               </Col>
               <Col xs={24}>
-                <Form.Item name="description" label="Description">
+                <Form.Item name="description" label={t("productForm.description")}>
                   <Input.TextArea rows={4} />
                 </Form.Item>
               </Col>
               {!isNew && (
                 <Col xs={24}>
-                  <Form.Item name="isActive" label="Active on the storefront" valuePropName="checked">
+                  <Form.Item name="isActive" label={t("productForm.activeOnStore")} valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>
@@ -179,13 +181,13 @@ export default function ProductFormPage() {
             </Row>
             <Space>
               <Button type="primary" htmlType="submit" loading={save.isPending}>
-                {isNew ? "Create product" : "Save changes"}
+                {isNew ? t("productForm.createProduct") : t("productForm.saveChanges")}
               </Button>
-              <Button onClick={() => navigate("/admin/products")}>Back</Button>
+              <Button onClick={() => navigate("/admin/products")}>{t("common.back")}</Button>
               {!isNew && product.data?.isActive && (
-                <Popconfirm title="Deactivate this product?" onConfirm={() => deactivate.mutate()}>
+                <Popconfirm title={t("products.deactivateQuestion")} onConfirm={() => deactivate.mutate()}>
                   <Button danger loading={deactivate.isPending}>
-                    Deactivate
+                    {t("common.deactivate")}
                   </Button>
                 </Popconfirm>
               )}

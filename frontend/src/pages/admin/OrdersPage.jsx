@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { App, Button, Card, Input, Modal, Select, Space, Table, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { api, toQuery } from "../../lib/api";
-import { NEXT_STATUSES, ORDER_STATUSES, STATUS_LABELS, dateText, vnd } from "../../lib/format";
+import { NEXT_STATUSES, ORDER_STATUSES, dateText, statusLabel, vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 import { useTableParams } from "../../lib/useTableParams";
 import StatusTag from "../../components/StatusTag";
 import SearchInput from "../../components/SearchInput";
 
 export default function OrdersPage() {
+  const { t } = useI18n();
   const { message, modal } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -27,7 +29,7 @@ export default function OrdersPage() {
     mutationFn: ({ id, status, trackingNumber }) =>
       api(`/api/orders/${id}/status`, { method: "PATCH", body: { status, trackingNumber: trackingNumber || undefined } }),
     onSuccess: () => {
-      message.success("Order updated.");
+      message.success(t("admin.orders.updated"));
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
       setShipping(null);
@@ -42,38 +44,38 @@ export default function OrdersPage() {
       return;
     }
 
-    const label = STATUS_LABELS[status] || status;
+    const label = statusLabel(status);
     const danger = status === "cancelled" || status === "refunded";
 
     modal.confirm({
-      title: `Change order #${order.id.slice(0, 8)} to ${label}?`,
+      title: t("admin.orders.changeTitle", { id: order.id.slice(0, 8), status: label }),
       content:
         status === "refunded"
-          ? "The order is refunded and its items return to stock."
+          ? t("admin.orders.refundedNote")
           : status === "cancelled"
-            ? "The order is cancelled and its items return to stock."
-            : `The order status will change from ${STATUS_LABELS[order.status]} to ${label}.`,
-      okText: `Yes, ${label.toLowerCase()}`,
+            ? t("admin.orders.cancelledNote")
+            : t("admin.orders.statusNote", { from: statusLabel(order.status), to: label }),
+      okText: t("admin.orders.confirmOk", { status: label.toLowerCase() }),
       okButtonProps: { danger },
-      cancelText: "Keep current",
+      cancelText: t("admin.orders.keepCurrent"),
       onOk: () => changeStatus.mutateAsync({ id: order.id, status }).catch(() => {}),
     });
   }
 
   const columns = [
-    { title: "Order", dataIndex: "id", render: (id) => <Typography.Text code>#{id.slice(0, 8)}</Typography.Text> },
-    { title: "Date", dataIndex: "orderDate", sorter: true, render: dateText },
-    { title: "Customer", render: (_, o) => o.customer?.name || o.shipName || "Walk-in" },
-    { title: "Items", render: (_, o) => (o.items || []).reduce((sum, item) => sum + item.quantity, 0), align: "center" },
-    { title: "Total", dataIndex: "totalAmount", sorter: true, align: "right", render: vnd },
+    { title: t("orders.order"), dataIndex: "id", render: (id) => <Typography.Text code>#{id.slice(0, 8)}</Typography.Text> },
+    { title: t("orders.date"), dataIndex: "orderDate", sorter: true, render: dateText },
+    { title: t("admin.orders.customer"), render: (_, o) => o.customer?.name || o.shipName || t("admin.orders.walkIn") },
+    { title: t("orders.items"), render: (_, o) => (o.items || []).reduce((sum, item) => sum + item.quantity, 0), align: "center" },
+    { title: t("orders.total"), dataIndex: "totalAmount", sorter: true, align: "right", render: vnd },
     {
-      title: "Status",
+      title: t("orders.status"),
       dataIndex: "status",
       width: 200,
       render: (status, order) => {
         const options = [status, ...(NEXT_STATUSES[status] || [])].map((s) => ({
           value: s,
-          label: STATUS_LABELS[s] || s,
+          label: statusLabel(s),
           disabled: s !== status && !(NEXT_STATUSES[status] || []).includes(s),
         }));
         return (
@@ -92,27 +94,27 @@ export default function OrdersPage() {
 
   return (
     <Card
-      title="Orders"
+      title={t("admin.orders.title")}
       extra={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate("/admin/orders/new")}>
-          New order
+          {t("admin.orders.new")}
         </Button>
       }
     >
       <Space wrap style={{ marginBottom: 16 }}>
         <SearchInput
-          placeholder="Customer, ship name, city"
+          placeholder={t("admin.orders.searchPlaceholder")}
           value={table.filters.q}
           onSearch={(q) => table.setFilters({ ...table.filters, q })}
           width={280}
         />
         <Select
           allowClear
-          placeholder="All statuses"
+          placeholder={t("admin.orders.allStatuses")}
           style={{ width: 180 }}
           value={table.filters.status || undefined}
           onChange={(value) => table.setFilters({ ...table.filters, status: value || "" })}
-          options={ORDER_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+          options={ORDER_STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))}
         />
       </Space>
       <Table
@@ -131,23 +133,25 @@ export default function OrdersPage() {
                   {item.product?.name} × {item.quantity} — {vnd(item.lineTotal)}
                 </Typography.Text>
               ))}
-              {order.trackingNumber && <Typography.Text type="secondary">Tracking: {order.trackingNumber}</Typography.Text>}
+              {order.trackingNumber && (
+                <Typography.Text type="secondary">{t("admin.orders.tracking", { tracking: order.trackingNumber })}</Typography.Text>
+              )}
             </Space>
           ),
         }}
       />
 
       <Modal
-        title="Ship order"
+        title={t("admin.orders.shipTitle")}
         open={Boolean(shipping)}
         onCancel={() => setShipping(null)}
         onOk={() => changeStatus.mutate({ id: shipping.order.id, status: "shipped", trackingNumber: shipping.tracking })}
-        okText="Mark as shipped"
+        okText={t("admin.orders.markShipped")}
         confirmLoading={changeStatus.isPending}
       >
-        <Typography.Paragraph>Add the carrier tracking number (optional).</Typography.Paragraph>
+        <Typography.Paragraph>{t("admin.orders.trackingHelp")}</Typography.Paragraph>
         <Input
-          placeholder="Tracking number"
+          placeholder={t("admin.orders.trackingPlaceholder")}
           value={shipping?.tracking}
           onChange={(event) => setShipping((current) => ({ ...current, tracking: event.target.value }))}
         />

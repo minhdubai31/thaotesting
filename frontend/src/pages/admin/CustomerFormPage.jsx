@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
 import { Button, Card, Form, Input, App } from "antd";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 
 export default function CustomerFormPage() {
+  const { t } = useI18n();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -12,7 +14,7 @@ export default function CustomerFormPage() {
   const create = useMutation({
     mutationFn: (body) => api("/api/customers", { method: "POST", body }),
     onSuccess: () => {
-      message.success("Customer saved.");
+      message.success(t("customerForm.saved"));
       queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
       queryClient.invalidateQueries({ queryKey: ["masters"] });
       navigate("/admin/customers");
@@ -21,22 +23,22 @@ export default function CustomerFormPage() {
   });
 
   return (
-    <Card title={<PageTitle back="/admin/customers">New customer</PageTitle>} style={{ maxWidth: 560 }}>
+    <Card title={<PageTitle back="/admin/customers">{t("customers.new")}</PageTitle>} style={{ maxWidth: 560 }}>
       <Form layout="vertical" onFinish={(values) => create.mutate(values)}>
-        <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+        <Form.Item name="name" label={t("common.name")} rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="phone" label="Phone">
+        <Form.Item name="phone" label={t("common.phone")}>
           <Input />
         </Form.Item>
-        <Form.Item name="email" label="Email" rules={[{ type: "email" }]}>
+        <Form.Item name="email" label={t("common.email")} rules={[{ type: "email" }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="address" label="Address">
+        <Form.Item name="address" label={t("common.address")}>
           <Input />
         </Form.Item>
         <Button type="primary" htmlType="submit" loading={create.isPending}>
-          Save customer
+          {t("customerForm.save")}
         </Button>
       </Form>
     </Card>

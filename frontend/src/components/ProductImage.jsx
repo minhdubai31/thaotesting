@@ -4,6 +4,7 @@ import { PictureOutlined } from "@ant-design/icons";
 // Product photo that falls back to a placeholder when there is no image or it fails to load.
 export default function ProductImage({ src, alt = "", height = 200, preview = false }) {
   const [failed, setFailed] = useState(false);
+  const padding = Math.max(4, Math.min(20, Math.round(height * 0.08)));
 
   if (!src || failed) {
     return (
@@ -20,7 +21,7 @@ export default function ProductImage({ src, alt = "", height = 200, preview = fa
       loading="lazy"
       onError={() => setFailed(true)}
       className="product-image"
-      style={{ height, cursor: preview ? "zoom-in" : undefined }}
+      style={{ height, padding, cursor: preview ? "zoom-in" : undefined }}
     />
   );
 }

@@ -1,21 +1,26 @@
+import { en } from "../i18n/en";
+import { vi } from "../i18n/vi";
+
+// The active language is set by the I18nProvider, so dates and status labels follow the switch.
+let activeTag = "vi-VN";
+let activeDictionary = vi;
+
+export function setActiveLocale(tag) {
+  activeTag = tag;
+  activeDictionary = tag.startsWith("en") ? en : vi;
+}
+
 export const vnd = (value) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(
     Number(value || 0)
   );
 
-export const dateText = (value) => (value ? new Date(value).toLocaleDateString("vi-VN") : "—");
-export const dateTimeText = (value) => (value ? new Date(value).toLocaleString("vi-VN") : "—");
+export const dateText = (value) => (value ? new Date(value).toLocaleDateString(activeTag) : "—");
+export const dateTimeText = (value) => (value ? new Date(value).toLocaleString(activeTag) : "—");
 
 export const ORDER_STATUSES = ["pending", "paid", "shipped", "completed", "cancelled", "refunded"];
 
-export const STATUS_LABELS = {
-  pending: "Pending",
-  paid: "Paid",
-  shipped: "Shipped",
-  completed: "Delivered",
-  cancelled: "Cancelled",
-  refunded: "Refunded",
-};
+export const statusLabel = (status) => activeDictionary[`status.${status}`] || status;
 
 export const STATUS_COLORS = {
   pending: "gold",

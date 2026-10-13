@@ -4,9 +4,11 @@ import { ShoppingCartOutlined } from "@ant-design/icons";
 import { useAuth } from "../auth/AuthContext";
 import { useCartActions } from "../lib/useCart";
 import { vnd } from "../lib/format";
+import { useI18n } from "../i18n";
 import ProductImage from "./ProductImage";
 
 export default function ProductCard({ product }) {
+  const { t } = useI18n();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { addItem } = useCartActions();
@@ -37,7 +39,7 @@ export default function ProductCard({ product }) {
           loading={addItem.isPending}
           onClick={handleAdd}
         >
-          {product.inStock ? "Add to cart" : "Out of stock"}
+          {product.inStock ? t("product.addToCart") : t("product.outOfStock")}
         </Button>,
       ]}
     >

@@ -5,12 +5,14 @@ import { App, Button, Card, Popconfirm, Select, Space, Table, Tag, Typography } 
 import { EditOutlined, PlusOutlined, StopOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { api, toQuery } from "../../lib/api";
 import { vnd } from "../../lib/format";
+import { useI18n } from "../../i18n";
 import { useMasters } from "../../lib/useMasters";
 import { useTableParams } from "../../lib/useTableParams";
 import ProductImage from "../../components/ProductImage";
 import SearchInput from "../../components/SearchInput";
 
 export default function ProductsPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
@@ -24,7 +26,7 @@ export default function ProductsPage() {
         ? api(`/api/products/${id}`, { method: "PATCH", body: { isActive: true } })
         : api(`/api/products/${id}`, { method: "DELETE" }),
     onSuccess: (_data, { active }) => {
-      message.success(active ? "Product activated." : "Product deactivated.");
+      message.success(active ? t("products.activated") : t("products.deactivated"));
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["masters"] });
     },
@@ -42,45 +44,49 @@ export default function ProductsPage() {
     { title: "", key: "image", width: 72, render: (_, p) => <ProductImage src={p.imageUrl} height={48} /> },
     { title: "SKU", dataIndex: "sku", sorter: true },
     {
-      title: "Name",
+      title: t("products.name"),
       dataIndex: "name",
       sorter: true,
       render: (name, p) => <Link to={`/admin/products/${p.id}`}>{name}</Link>,
     },
-    { title: "Category", dataIndex: "category", render: (_, p) => p.categoryRef?.name || p.category },
-    { title: "Price", dataIndex: "price", sorter: true, align: "right", render: vnd },
+    { title: t("products.category"), dataIndex: "category", render: (_, p) => p.categoryRef?.name || p.category },
+    { title: t("products.price"), dataIndex: "price", sorter: true, align: "right", render: vnd },
     {
-      title: "Stock",
+      title: t("products.stock"),
       dataIndex: "unitsInStock",
       sorter: true,
       align: "right",
       render: (value, p) => <Typography.Text type={value <= p.reorderLevel ? "danger" : undefined}>{value}</Typography.Text>,
     },
-    { title: "Status", dataIndex: "isActive", render: (active) => (active ? <Tag color="green">Active</Tag> : <Tag>Inactive</Tag>) },
     {
-      title: "Actions",
+      title: t("products.status"),
+      dataIndex: "isActive",
+      render: (active) => (active ? <Tag color="green">{t("common.active")}</Tag> : <Tag>{t("common.inactive")}</Tag>),
+    },
+    {
+      title: t("products.actions"),
       key: "actions",
       width: 260,
       render: (_, p) => (
         <Space>
           <Button size="small" icon={<EditOutlined />} onClick={() => navigate(`/admin/products/${p.id}`)}>
-            Edit
+            {t("common.edit")}
           </Button>
           {p.isActive ? (
             <Popconfirm
-              title="Deactivate this product?"
-              description="It will be hidden from the storefront."
-              okText="Deactivate"
+              title={t("products.deactivateQuestion")}
+              description={t("products.deactivateNote")}
+              okText={t("common.deactivate")}
               okButtonProps={{ danger: true }}
               onConfirm={() => setActive.mutate({ id: p.id, active: false })}
             >
               <Button size="small" danger icon={<StopOutlined />} loading={setActive.isPending}>
-                Deactivate
+                {t("common.deactivate")}
               </Button>
             </Popconfirm>
           ) : (
             <Button size="small" icon={<CheckCircleOutlined />} loading={setActive.isPending} onClick={() => setActive.mutate({ id: p.id, active: true })}>
-              Activate
+              {t("common.activate")}
             </Button>
           )}
         </Space>
@@ -90,22 +96,22 @@ export default function ProductsPage() {
 
   return (
     <Card
-      title="Products"
+      title={t("products.title")}
       extra={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate("/admin/products/new")}>
-          New product
+          {t("products.new")}
         </Button>
       }
     >
       <Space wrap style={{ marginBottom: 16 }}>
         <SearchInput
-          placeholder="Name, SKU, brand"
+          placeholder={t("products.searchPlaceholder")}
           value={table.filters.q}
           onSearch={(q) => table.setFilters({ ...table.filters, q })}
         />
         <Select
           allowClear
-          placeholder="Category"
+          placeholder={t("products.category")}
           style={{ width: 200 }}
           value={table.filters.categoryId || undefined}
           onChange={(value) => table.setFilters({ ...table.filters, categoryId: value || "" })}
@@ -116,9 +122,9 @@ export default function ProductsPage() {
           value={table.filters.status || "all"}
           onChange={(value) => table.setFilters({ ...table.filters, status: value })}
           options={[
-            { value: "all", label: "All" },
-            { value: "active", label: "Active" },
-            { value: "inactive", label: "Inactive" },
+            { value: "all", label: t("products.all") },
+            { value: "active", label: t("common.active") },
+            { value: "inactive", label: t("common.inactive") },
           ]}
         />
       </Space>
